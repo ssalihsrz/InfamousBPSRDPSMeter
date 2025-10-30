@@ -924,6 +924,10 @@ class UserDataManager {
         
         // isPaused and globalSettings.onlyRecordEliteDummy will be handled in the sniffer or entry point
         this.checkCombatTimeout();
+        
+        // CRITICAL: Update lastLogTime to track combat activity
+        this.lastLogTime = Date.now();
+        
         const user = this.getUser(uid);
         user.addDamage(skillId, element, damage, isCrit, isLucky, isCauseLucky, hpLessenValue);
     }
@@ -973,6 +977,10 @@ class UserDataManager {
         
         // isPaused will be handled in the sniffer or entry point
         this.checkCombatTimeout();
+        
+        // CRITICAL: Update lastLogTime to track combat activity
+        this.lastLogTime = Date.now();
+        
         if (uid !== 0) {
             const user = this.getUser(uid);
             const target = this.getUser(targetUid);
