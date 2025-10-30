@@ -111,9 +111,6 @@ async function main() {
     const userDataManager = new UserDataManager(logger, globalSettings, VERSION, userDataPath);
     await userDataManager.initialize();
     
-    // CRITICAL: Pass io to userDataManager so it can notify frontend of auto-saves
-    userDataManager.setSocketIO(io);
-    
     // Initialize mapping manager for boss/mob detection
     const mappingManager = new MappingManager(userDataPath, logger.info.bind(logger));
     await mappingManager.initialize();
@@ -183,6 +180,10 @@ async function main() {
             methods: ['GET', 'POST'],
         },
     });
+    
+    // CRITICAL: Pass io to userDataManager so it can notify frontend of auto-saves
+    // Must be AFTER io is created!
+    userDataManager.setSocketIO(io);
 
     console.log('🔧 About to initialize API...');
     logger.info('🔧 About to initialize API...');
