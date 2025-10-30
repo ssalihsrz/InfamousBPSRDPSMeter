@@ -155,11 +155,16 @@ function toggleSelectAll(checked) {
 
 // Handle session item click (checkbox, rename, delete)
 function handleSessionClick(e) {
+    console.log('🖱️ Session item clicked:', e.target);
     const target = e.target;
     const sessionItem = target.closest('.session-item');
-    if (!sessionItem) return;
+    if (!sessionItem) {
+        console.log('⚠️ Not a session item, ignoring');
+        return;
+    }
     
     const sessionId = sessionItem.dataset.sessionId;
+    console.log('📋 Session ID:', sessionId);
     
     // Checkbox click
     if (target.classList.contains('session-checkbox')) {
@@ -178,10 +183,15 @@ function handleSessionClick(e) {
     
     // Action buttons (rename/delete)
     const action = target.closest('[data-action]')?.dataset.action;
+    console.log('🎬 Action detected:', action);
     if (action === 'rename') {
+        console.log('✏️ Calling renameSession');
         renameSession(sessionId);
     } else if (action === 'delete') {
+        console.log('🗑️ Calling deleteSingleSession');
         deleteSingleSession(sessionId);
+    } else {
+        console.log('⚠️ No action matched, action was:', action);
     }
 }
 
@@ -315,9 +325,12 @@ async function renameSession(sessionId) {
 
 // Delete a single session
 async function deleteSingleSession(sessionId) {
+    console.log('🚨 deleteSingleSession called with ID:', sessionId);
     if (!confirm('Delete this session? This cannot be undone.')) {
+        console.log('❌ User cancelled delete');
         return;
     }
+    console.log('✅ User confirmed delete, sending request...');
     
     try {
         const response = await fetch(`http://localhost:8989/api/sessions/${sessionId}`, {
