@@ -1257,10 +1257,12 @@ class UserDataManager {
                 // Enable tracking for this player
                 user.trackSkills = true;
             } else if (!shouldTrack && user.trackSkills) {
-                // Disable tracking and clear skill data for this player
+                // Disable FUTURE tracking but keep existing skills
                 user.trackSkills = false;
-                user.skillUsage.clear(); // Free memory
-                user.skillSequence = []; // Clear sequence
+                // CRITICAL: Don't clear skillUsage for players with combat data!
+                // Skills are valuable historical data that shouldn't be deleted
+                // Only clear sequence (recent activity log)
+                user.skillSequence = [];
             }
         }
         
