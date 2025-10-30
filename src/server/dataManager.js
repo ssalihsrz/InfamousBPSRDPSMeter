@@ -1477,7 +1477,13 @@ class UserDataManager {
         // PRIORITY 1: Use mapping manager to detect bosses by ID (most reliable!)
         if (this.mappingManager) {
             for (const [enemyId, enemy] of Object.entries(enemies)) {
-                const bossName = this.mappingManager.getBossName(enemyId);
+                let bossName = this.mappingManager.getBossName(enemyId);
+                
+                // SMART DISCOVERY: If ID not recognized but we have enemy name, try to learn it!
+                if (!bossName && enemy.name) {
+                    bossName = this.mappingManager.smartDiscovery(enemyId, enemy.name);
+                }
+                
                 if (bossName) {
                     // Got a boss match from the 78+ boss mapping database
                     const bossData = this.mappingManager.getBossData(bossName);

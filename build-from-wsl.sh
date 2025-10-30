@@ -78,6 +78,20 @@ if [ -f "$INSTALLER" ]; then
     if [ -d "/mnt/f/DPS" ]; then
         cp "$INSTALLER" "/mnt/f/DPS/$BASENAME"
         echo "✓ Copied to: F:/DPS/$BASENAME"
+        
+        # Also copy latest.yml and .blockmap for auto-updater
+        BLOCKMAP="${INSTALLER}.blockmap"
+        LATEST_YML="$WIN_TEMP/dist_electron/latest.yml"
+        
+        if [ -f "$BLOCKMAP" ]; then
+            cp "$BLOCKMAP" "/mnt/f/DPS/$(basename "$BLOCKMAP")"
+            echo "✓ Copied: $(basename "$BLOCKMAP")"
+        fi
+        
+        if [ -f "$LATEST_YML" ]; then
+            cp "$LATEST_YML" "/mnt/f/DPS/latest.yml"
+            echo "✓ Copied: latest.yml"
+        fi
     else
         echo "⚠ Warning: F:/DPS directory not found, skipping"
     fi

@@ -25,6 +25,10 @@ class MappingManager {
         this.maps = {};
         this.unknownIds = new Set();
         
+        // BIDIRECTIONAL mapping: boss name → array of IDs
+        // Allows finding all IDs for a boss (multiple IDs can map to same boss)
+        this.bossNameToIds = {};
+        
         // Local fallback (bundled with app)
         this.fallbackMappingFile = path.join(__dirname, 'data', 'boss-mappings.json');
     }
@@ -125,6 +129,9 @@ class MappingManager {
             this.bossData = mappings.bossData || {};
             this.maps = mappings.maps || {};
             
+            // Build reverse index: boss name → array of IDs
+            this.buildReverseIndex();
+            
             this.logger(`[Mappings] 📖 Loaded from: ${mappingFile}`);
         } catch (err) {
             this.logger(`[Mappings] ❌ Failed to load mappings: ${err.message}`);
@@ -136,11 +143,129 @@ class MappingManager {
     }
     
     /**
+     * Build reverse index: boss name → array of IDs
+     * Allows finding all IDs for a boss (one boss can have multiple IDs)
+     */
+    buildReverseIndex() {
+        this.bossNameToIds = {};
+        
+        for (const [id, bossName] of Object.entries(this.bossMeterIds)) {
+            if (!this.bossNameToIds[bossName]) {
+                this.bossNameToIds[bossName] = [];
+            }
+            this.bossNameToIds[bossName].push(id);
+        }
+        
+        // Log bosses with multiple IDs
+        const multiBosses = Object.entries(this.bossNameToIds)
+            .filter(([name, ids]) => ids.length > 1);
+        
+        if (multiBosses.length > 0) {
+            this.logger(`[Mappings] 🔄 Found ${multiBosses.length} bosses with multiple IDs:`);
+            multiBosses.forEach(([name, ids]) => {
+                this.logger(`[Mappings]    ${name}: ${ids.length} IDs (${ids.slice(0, 3).join(', ')}${ids.length > 3 ? '...' : ''})`);
+            });
+        }
+    }
+    
+    /**
      * Look up boss/mob name by ID
      */
     getBossName(id) {
         const idStr = String(id);
         return this.bossMeterIds[idStr] || null;
+    }
+    
+    /**
+     * Smart discovery: Try to match enemy name to known boss and learn new ID
+     * @param {string} enemyId - The enemy ID we don't recognize
+     * @param {string} enemyName - The enemy name from packet
+     * @returns {string|null} - Matched boss name if found
+     */
+    smartDiscovery(enemyId, enemyName) {
+        if (!enemyName || enemyName === '') return null;
+        
+        const idStr = String(enemyId);
+        
+        // Already known?
+        if (this.bossMeterIds[idStr]) return this.bossMeterIds[idStr];
+        
+        // Try fuzzy match to known boss names
+        const normalizedName = enemyName.toLowerCase().trim();
+        
+        for (const bossName of Object.keys(this.bossData)) {
+            const normalizedBoss = bossName.toLowerCase();
+            
+            // Exact match
+            if (normalizedName === normalizedBoss) {
+                this.logger(`[Mappings] 🎯 DISCOVERED: ID ${idStr} → ${bossName} (exact match)`);
+                this.learnNewId(idStr, bossName);
+                return bossName;
+            }
+            
+            // Contains match (enemy name contains boss name or vice versa)
+            if (normalizedName.includes(normalizedBoss) || normalizedBoss.includes(normalizedName)) {
+                this.logger(`[Mappings] 🎯 DISCOVERED: ID ${idStr} → ${bossName} (fuzzy match)`);
+                this.learnNewId(idStr, bossName);
+                return bossName;
+            }
+        }
+        
+        // No match found - log as unknown with context
+        this.logUnknownId(idStr, { enemyName, timestamp: new Date().toISOString() });
+        
+        return null;
+    }
+    
+    /**
+     * Learn a new ID for an existing boss (adds to in-memory mapping)
+     * @param {string} id - The new ID discovered
+     * @param {string} bossName - The boss name it maps to
+     */
+    learnNewId(id, bossName) {
+        // Add to forward mapping
+        this.bossMeterIds[id] = bossName;
+        
+        // Add to reverse mapping
+        if (!this.bossNameToIds[bossName]) {
+            this.bossNameToIds[bossName] = [];
+        }
+        if (!this.bossNameToIds[bossName].includes(id)) {
+            this.bossNameToIds[bossName].push(id);
+        }
+        
+        // Remove from unknown IDs
+        this.unknownIds.delete(id);
+        
+        // Save to local mapping file for persistence
+        this.saveMappings();
+    }
+    
+    /**
+     * Save current mappings to local file (persists learned IDs)
+     */
+    saveMappings() {
+        try {
+            const mappings = {
+                bossMeterIds: this.bossMeterIds,
+                bossData: this.bossData,
+                maps: this.maps
+            };
+            
+            fs.writeFileSync(this.localMappingFile, JSON.stringify(mappings, null, 2), 'utf8');
+            this.logger(`[Mappings] 💾 Saved updated mappings (${Object.keys(this.bossMeterIds).length} IDs)`);
+        } catch (err) {
+            this.logger(`[Mappings] ❌ Failed to save mappings: ${err.message}`);
+        }
+    }
+    
+    /**
+     * Get all known IDs for a boss name
+     * @param {string} bossName - The boss name
+     * @returns {string[]} - Array of IDs that map to this boss
+     */
+    getIdsForBoss(bossName) {
+        return this.bossNameToIds[bossName] || [];
     }
     
     /**
