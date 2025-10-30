@@ -111,6 +111,9 @@ async function main() {
     const userDataManager = new UserDataManager(logger, globalSettings, VERSION, userDataPath);
     await userDataManager.initialize();
     
+    // CRITICAL: Pass io to userDataManager so it can notify frontend of auto-saves
+    userDataManager.setSocketIO(io);
+    
     // Initialize mapping manager for boss/mob detection
     const mappingManager = new MappingManager(userDataPath, logger.info.bind(logger));
     await mappingManager.initialize();

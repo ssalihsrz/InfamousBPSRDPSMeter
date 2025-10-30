@@ -4100,6 +4100,19 @@ function initializeSessionManagement() {
     // Load sessions on startup
     loadSessions();
     
+    // CRITICAL: Listen for auto-save notifications from backend
+    if (typeof io !== 'undefined') {
+        const socket = io();
+        socket.on('session-saved', (data) => {
+            console.log('📡 Received session-saved notification:', data);
+            // Refresh session dropdown to show new session
+            loadSessions();
+            if (data.autoSaved) {
+                showToast(`Session auto-saved: ${data.sessionName}`, 'success', 2000);
+            }
+        });
+    }
+    
     // Save session button
     const saveBtn = document.getElementById('btn-save-session');
     if (saveBtn) {

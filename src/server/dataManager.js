@@ -708,6 +708,9 @@ class UserDataManager {
         // CRITICAL FIX: Initialize userCache (was missing, causing TypeError on line 813)
         this.userCache = new Map();
         
+        // Socket.IO for notifying frontend of auto-saves
+        this.io = null;
+        
         // Initialize skill translation manager (will be loaded in initialize())
         this.skillTranslations = new SkillTranslationManager(logger, userDataPath);
 
@@ -791,6 +794,12 @@ class UserDataManager {
     setMappingManager(mappingManager) {
         this.mappingManager = mappingManager;
         this.logger.info('🗺️ Mapping manager connected to UserDataManager');
+    }
+    
+    /** Set Socket.IO for notifying frontend */
+    setSocketIO(io) {
+        this.io = io;
+        this.logger.info('📡 Socket.IO connected to UserDataManager');
     }
     
     /** Load player names from player_map.json */
@@ -1612,6 +1621,16 @@ class UserDataManager {
             await this.cleanupOldSessions();
 
             this.logger.info(`💾 Auto-saved session: ${players.length} players, ${sessionData.totalDps.toLocaleString()} DPS`);
+            
+            // CRITICAL: Notify frontend to refresh session dropdown
+            if (this.io) {
+                this.io.emit('session-saved', {
+                    sessionId: timestamp,
+                    sessionName: sessionName,
+                    autoSaved: true
+                });
+                this.logger.info('📡 Notified frontend of auto-save');
+            }
         } catch (error) {
             this.logger.error('Failed to auto-save session:', error.message, error.stack);
         }
