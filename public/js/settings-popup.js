@@ -90,17 +90,41 @@ const SETTINGS = {
     }
 };
 
-// Toast notification
-function showToast(message) {
+// Toast notification with type support
+function showToast(message, type = 'success') {
     const toast = document.createElement('div');
-    toast.style.cssText = 'position:fixed;top:20px;right:20px;background:#10b981;color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;z-index:9999;animation:slideIn 0.3s ease;';
+    
+    // Color based on type
+    let bgColor = '#10b981'; // green (success)
+    if (type === 'error') bgColor = '#ef4444'; // red
+    if (type === 'info') bgColor = '#3b82f6'; // blue
+    if (type === 'warning') bgColor = '#f59e0b'; // orange
+    
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${bgColor};
+        color: #fff;
+        padding: 16px 24px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        z-index: 99999;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        white-space: pre-line;
+        max-width: 400px;
+    `;
     toast.textContent = message;
     document.body.appendChild(toast);
     
+    console.log(`🍞 Toast: ${message} (${type})`);
+    
     setTimeout(() => {
-        toast.style.animation = 'slideOut 0.3s ease';
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s ease';
         setTimeout(() => toast.remove(), 300);
-    }, 2000);
+    }, 3000);
 }
 
 // Load settings into form
@@ -256,10 +280,54 @@ document.addEventListener('DOMContentLoaded', async () => {
         autoUpdateSelect.value = SETTINGS.autoUpdate || 'notify';
     }
     
-    // Setup electron-updater event listeners (if in Electron)
+    // Setup GLOBAL electron-updater event listeners (if in Electron)
     if (window.electronAPI?.onUpdateDownloaded) {
+        console.log('🔌 Setting up global update event listeners...');
+        
+        // Update available
+        window.electronAPI.onUpdateAvailable((info) => {
+            console.log('🎉 Global listener: Update available:', info);
+            showToast(
+                `🎉 Update Available!\n\nCurrent: v${info.currentVersion}\nLatest: v${info.newVersion}`,
+                'success'
+            );
+        });
+        
+        // Update not available
+        window.electronAPI.onUpdateNotAvailable((info) => {
+            console.log('✅ Global listener: No update available');
+            
+            const button = document.getElementById('check-updates-btn');
+            if (button) {
+                button.disabled = false;
+                button.style.background = '';
+                button.innerHTML = '<i class="fa-solid fa-check"></i> Up to Date';
+                
+                // Reset after 3 seconds
+                setTimeout(() => {
+                    button.innerHTML = '<i class="fa-solid fa-sync"></i> Check for Updates';
+                }, 3000);
+            }
+            
+            showToast(
+                `✅ You're up to date!\n\nCurrent version: v${info.currentVersion}`,
+                'success'
+            );
+        });
+        
+        // Download progress
+        window.electronAPI.onUpdateDownloadProgress((progress) => {
+            console.log(`📥 Global listener: Download progress: ${progress.percent}%`);
+            showToast(`Downloading: ${Math.round(progress.percent)}%`, 'info');
+        });
+        
+        // Downloaded
         window.electronAPI.onUpdateDownloaded((info) => {
-            console.log('✅ Update downloaded:', info.version);
+            console.log('✅ Global listener: Update downloaded:', info.version);
+            showToast(
+                `✅ Update Downloaded!\n\nVersion ${info.version} ready to install.`,
+                'success'
+            );
             const result = confirm(
                 `✅ Update Downloaded!\n\n` +
                 `Version ${info.version} is ready to install.\n\n` +
@@ -271,24 +339,35 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
         
-        window.electronAPI.onUpdateDownloadProgress((progress) => {
-            console.log(`📥 Downloading update: ${progress.percent}%`);
-            // Could add a progress bar here in the future
+        // Error handler
+        window.electronAPI.onUpdateError((error) => {
+            console.error('❌ Global listener: Update error:', error);
+            showToast(
+                `❌ Update failed\n\n${error.message}`,
+                'error'
+            );
         });
+        
+        console.log('✅ Global update listeners registered');
     }
     
     console.log('✅ Settings popup ready');
 });
 
-// Check for Updates Function with Visual Feedback
+// Check for Updates Function - Simplified (uses global listeners)
 async function checkForUpdates() {
     console.log('🔄 Manual update check triggered');
     const button = document.getElementById('check-updates-btn');
+    
+    // Show immediate feedback
     if (button) {
         button.disabled = true;
         button.style.background = 'rgba(59, 130, 246, 0.3)';
         button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking...';
     }
+    
+    // Show toast immediately
+    showToast('🔍 Checking for updates...', 'info');
     
     // CRITICAL: Reload settings before checking (ensure autoUpdate mode is current)
     await SETTINGS.load();
@@ -298,119 +377,13 @@ async function checkForUpdates() {
     if (window.electronAPI && window.electronAPI.checkForUpdates) {
         console.log('🔄 Using electron-updater for update check');
         
-        // Register one-time listeners for this manual check
-        const updateAvailableHandler = (info) => {
-            console.log('🎉 Update available:', info);
-            if (button) {
-                button.disabled = false;
-                button.style.background = '';
-                button.innerHTML = '<i class="fa-solid fa-sync"></i> Check for Updates';
-            }
-            
-            // Show notification in About modal
-            const mode = SETTINGS.autoUpdate || 'notify';
-            
-            if (mode === 'auto') {
-                // Auto mode: just download, show progress
-                showToast('⬇️ Downloading update automatically...', 'info');
-                window.electronAPI.downloadUpdate();
-            } else if (mode === 'notify') {
-                // Notify mode: ask user
-                showToast(
-                    `🎉 Update Available!\n\nCurrent: v${info.currentVersion}\nLatest: v${info.newVersion}\n\nClick Check for Updates again to download.`,
-                    'success'
-                );
-                
-                // Change button to Download
-                if (button) {
-                    button.innerHTML = '<i class="fa-solid fa-download"></i> Download Update';
-                    button.onclick = () => {
-                        window.electronAPI.downloadUpdate();
-                        button.disabled = true;
-                        button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Downloading...';
-                        showToast('⬇️ Download started!', 'info');
-                    };
-                }
-            }
-        };
-        
-        const updateNotAvailableHandler = () => {
-            console.log('✅ App is up to date');
-            if (button) {
-                button.disabled = false;
-                button.style.background = '';
-                button.innerHTML = '<i class="fa-solid fa-check"></i> Up to Date';
-                
-                // Reset after 3 seconds
-                setTimeout(() => {
-                    button.innerHTML = '<i class="fa-solid fa-sync"></i> Check for Updates';
-                }, 3000);
-            }
-            showToast('✅ You\'re up to date!\n\nRunning the latest version.', 'success');
-        };
-        
-        const updateErrorHandler = (error) => {
-            console.error('❌ Update check failed:', error);
-            if (button) {
-                button.disabled = false;
-                button.style.background = '';
-                button.innerHTML = '<i class="fa-solid fa-exclamation-triangle"></i> Check Failed';
-                
-                // Reset after 3 seconds
-                setTimeout(() => {
-                    button.innerHTML = '<i class="fa-solid fa-sync"></i> Check for Updates';
-                }, 3000);
-            }
-            showToast('❌ Update check failed\n\nCheck your internet connection', 'error');
-        };
-        
-        // Setup listeners
-        window.electronAPI.onUpdateAvailable(updateAvailableHandler);
-        window.electronAPI.onUpdateNotAvailable((info) => {
-            console.log('✅ No update available, current version:', info.currentVersion);
-            if (button) {
-                button.disabled = false;
-                button.style.background = '';
-                button.innerHTML = '<i class="fa-solid fa-check"></i> Up to Date';
-                
-                // Reset after 3 seconds
-                setTimeout(() => {
-                    button.innerHTML = '<i class="fa-solid fa-sync"></i> Check for Updates';
-                }, 3000);
-            }
-            showToast(`✅ You're up to date!\n\nCurrent: v${info.currentVersion}`, 'success');
-        });
-        
-        // Trigger check
+        // Trigger check (global listeners will handle responses)
         window.electronAPI.checkForUpdates();
         
-        // Listen for download progress
-        window.electronAPI.onUpdateDownloadProgress((progress) => {
-            if (button) {
-                button.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ${Math.round(progress.percent)}%`;
-            }
-        });
-        
-        // Listen for download complete
-        window.electronAPI.onUpdateDownloaded(() => {
-            if (button) {
-                button.disabled = false;
-                button.style.background = 'rgba(34, 197, 94, 0.3)';
-                button.innerHTML = '<i class="fa-solid fa-rocket"></i> Restart Now';
-                
-                // Change button to restart
-                button.onclick = () => {
-                    if (confirm('🔄 Restart and install update now?\n\nThe app will close and reopen with the new version.')) {
-                        window.electronAPI.installUpdate();
-                    }
-                };
-            }
-            showToast('✅ Update downloaded!\n\nClick Restart Now to install.', 'success');
-        });
-        
-        // Timeout fallback (in case no event fires)
+        // Reset button after timeout (safety net)
         setTimeout(() => {
             if (button && button.disabled) {
+                console.log('⏱️ Timeout: Resetting button');
                 button.disabled = false;
                 button.style.background = '';
                 button.innerHTML = '<i class="fa-solid fa-sync"></i> Check for Updates';
