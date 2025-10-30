@@ -114,6 +114,9 @@ async function main() {
     // Initialize mapping manager for boss/mob detection
     const mappingManager = new MappingManager(userDataPath, logger.info.bind(logger));
     await mappingManager.initialize();
+    
+    // CRITICAL: Connect mappingManager to userDataManager for zone detection
+    userDataManager.setMappingManager(mappingManager);
 
     const sniffer = new Sniffer(logger, userDataManager, globalSettings, mappingManager); // Pass mappingManager for boss detection
 

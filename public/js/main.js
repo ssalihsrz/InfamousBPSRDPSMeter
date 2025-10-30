@@ -118,6 +118,7 @@ const STATE = {
     inCombat: false, // Track if currently in combat
     lastPlayerCount: 0, // Track player count to detect combat start
     playerLastUpdate: new Map(), // Track last update time for idle detection
+    justCleared: false, // Track if we just cleared data (to prevent empty state flash)
 };
 
 // ============================================================================
@@ -499,6 +500,12 @@ async function fetchPlayerData() {
             STATE.startTime = null;
             STATE.inCombat = false;
             STATE.lastUpdate = Date.now();
+            STATE.justCleared = true; // Prevent empty state flash
+            
+            // Clear the flag after 2 seconds to allow new data to populate
+            setTimeout(() => {
+                STATE.justCleared = false;
+            }, 2000);
             
             // Force UI update
             renderPlayers();
@@ -889,13 +896,25 @@ function renderPlayers() {
     if (players.length === 0) {
         const list = document.getElementById('player-list');
         if (list) {
-            list.innerHTML = `
-                <div class="empty-state">
-                    <i class="fa-solid fa-users-slash"></i>
-                    <p>No combat data yet</p>
-                    <small>Change instance/zone to start tracking</small>
-                </div>
-            `;
+            // Don't show empty state if we just cleared (prevents flash during zone reset)
+            if (!STATE.justCleared) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-users-slash"></i>
+                        <p>No combat data yet</p>
+                        <small>Change instance/zone to start tracking</small>
+                    </div>
+                `;
+            } else {
+                // Show a subtle "transitioning" message instead
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                        <p>Waiting for new zone data...</p>
+                        <small>Packets incoming</small>
+                    </div>
+                `;
+            }
         }
         updateStatusBar([]);
         return;

@@ -682,6 +682,7 @@ class UserDataManager {
         // Use userDataPath if provided (from Electron), otherwise fall back to __dirname
         const basePath = userDataPath || path.join(__dirname, '..', '..');
         this.userDataPath = basePath;
+        this.mappingManager = null; // Will be set by setMappingManager()
         this.playerMapPath = path.join(basePath, 'player_map.json');
         
         this.users = new Map();
@@ -782,6 +783,14 @@ class UserDataManager {
                 }
             }
         }, 60000); // Check every 60 seconds
+    }
+    
+    /** Set mapping manager for boss/zone detection
+     * Called by server.js after mappingManager is initialized
+     */
+    setMappingManager(mappingManager) {
+        this.mappingManager = mappingManager;
+        this.logger.info('🗺️ Mapping manager connected to UserDataManager');
     }
     
     /** Load player names from player_map.json */
@@ -1464,6 +1473,31 @@ class UserDataManager {
     /** Detect zone/boss from enemy data */
     detectZoneContext() {
         const enemies = this.getAllEnemiesData();
+        
+        // PRIORITY 1: Use mapping manager to detect bosses by ID (most reliable!)
+        if (this.mappingManager) {
+            for (const [enemyId, enemy] of Object.entries(enemies)) {
+                const bossName = this.mappingManager.getBossName(enemyId);
+                if (bossName) {
+                    // Got a boss match from the 78+ boss mapping database
+                    const bossData = this.mappingManager.getBossData(bossName);
+                    const mapName = bossData?.map;
+                    
+                    // Add emoji based on boss type
+                    let emoji = '⚔️';
+                    if (bossName.includes('King')) emoji = '👑';
+                    else if (bossName.includes('Ogre')) emoji = '🔥';
+                    else if (bossName.includes('Goblin')) emoji = '🗡️';
+                    else if (bossName.includes('Celestial')) emoji = '✨';
+                    else if (bossName.includes('Juggernaut')) emoji = '💎';
+                    
+                    // Return boss name + map if available
+                    return mapName ? `${emoji} ${bossName} (${mapName})` : `${emoji} ${bossName}`;
+                }
+            }
+        }
+        
+        // PRIORITY 2: Fallback to enemy names from packets
         const enemyNames = Object.values(enemies)
             .map(e => e.name)
             .filter(name => name && name !== '');
@@ -1475,7 +1509,7 @@ class UserDataManager {
             return '🎯 Training Dummy';
         }
         
-        // Check for major bosses by name
+        // Check for major bosses by name (fallback if mapping failed)
         const bosses = [
             { names: ['利奥雷乌斯', 'Leorius'], label: '🔥 Leorius' },
             { names: ['卡特格里夫', 'Katergriff'], label: '⚔️ Katergriff' },
