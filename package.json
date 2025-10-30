@@ -136,7 +136,6 @@
         "nsis"
       ],
       "icon": "icon.ico",
-      "requestedExecutionLevel": "requireAdministrator",
       "signAndEditExecutable": false,
       "verifyUpdateCodeSignature": false
     },
@@ -149,7 +148,7 @@
       "perMachine": false,
       "runAfterFinish": true,
       "deleteAppDataOnUninstall": false,
-      "allowElevation": false,
+      "allowElevation": true,
       "installerIcon": "icon.ico",
       "uninstallerIcon": "icon.ico",
       "installerHeaderIcon": "icon.ico",

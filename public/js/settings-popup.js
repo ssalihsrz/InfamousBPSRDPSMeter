@@ -282,34 +282,55 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Check for Updates Function with Visual Feedback
 async function checkForUpdates() {
-    const button = event?.target?.closest('button');
+    console.log('🔄 Manual update check triggered');
+    const button = document.getElementById('check-updates-btn');
     if (button) {
         button.disabled = true;
+        button.style.background = 'rgba(59, 130, 246, 0.3)';
         button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking...';
     }
     
-    // ELECTRON MODE: Use electron-updater (proper auto-update)
-    if (window.electronAPI?.checkForUpdates) {
+    // CRITICAL: Reload settings before checking (ensure autoUpdate mode is current)
+    await SETTINGS.load();
+    console.log(`🔄 Using auto-update mode: ${SETTINGS.autoUpdate}`);
+    
+    // ELECTRON MODE: Use built-in auto-updater if available
+    if (window.electronAPI && window.electronAPI.checkForUpdates) {
         console.log('🔄 Using electron-updater for update check');
         
         // Register one-time listeners for this manual check
         const updateAvailableHandler = (info) => {
-            console.log('✨ Update available:', info);
+            console.log('🎉 Update available:', info);
             if (button) {
                 button.disabled = false;
+                button.style.background = '';
                 button.innerHTML = '<i class="fa-solid fa-sync"></i> Check for Updates';
             }
             
-            const result = confirm(
-                `🎉 Update Available!\n\n` +
-                `Current: v${info.currentVersion}\n` +
-                `Latest: v${info.newVersion}\n\n` +
-                `Would you like to download and install the update?`
-            );
+            // Show notification in About modal
+            const mode = SETTINGS.autoUpdate || 'notify';
             
-            if (result) {
+            if (mode === 'auto') {
+                // Auto mode: just download, show progress
+                showToast('⬇️ Downloading update automatically...', 'info');
                 window.electronAPI.downloadUpdate();
-                alert('⬇️ Download started! You\'ll be notified when it\'s ready to install.');
+            } else if (mode === 'notify') {
+                // Notify mode: ask user
+                showToast(
+                    `🎉 Update Available!\n\nCurrent: v${info.currentVersion}\nLatest: v${info.newVersion}\n\nClick Check for Updates again to download.`,
+                    'success'
+                );
+                
+                // Change button to Download
+                if (button) {
+                    button.innerHTML = '<i class="fa-solid fa-download"></i> Download Update';
+                    button.onclick = () => {
+                        window.electronAPI.downloadUpdate();
+                        button.disabled = true;
+                        button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Downloading...';
+                        showToast('⬇️ Download started!', 'info');
+                    };
+                }
             }
         };
         
@@ -317,18 +338,30 @@ async function checkForUpdates() {
             console.log('✅ App is up to date');
             if (button) {
                 button.disabled = false;
-                button.innerHTML = '<i class="fa-solid fa-sync"></i> Check for Updates';
+                button.style.background = '';
+                button.innerHTML = '<i class="fa-solid fa-check"></i> Up to Date';
+                
+                // Reset after 3 seconds
+                setTimeout(() => {
+                    button.innerHTML = '<i class="fa-solid fa-sync"></i> Check for Updates';
+                }, 3000);
             }
-            alert(`✅ You're up to date!\n\nYou're running the latest version.`);
+            showToast('✅ You\'re up to date!\n\nRunning the latest version.', 'success');
         };
         
         const updateErrorHandler = (error) => {
             console.error('❌ Update check failed:', error);
             if (button) {
                 button.disabled = false;
-                button.innerHTML = '<i class="fa-solid fa-sync"></i> Check for Updates';
+                button.style.background = '';
+                button.innerHTML = '<i class="fa-solid fa-exclamation-triangle"></i> Check Failed';
+                
+                // Reset after 3 seconds
+                setTimeout(() => {
+                    button.innerHTML = '<i class="fa-solid fa-sync"></i> Check for Updates';
+                }, 3000);
             }
-            alert('❌ Failed to check for updates.\n\nPlease check your internet connection and try again.');
+            showToast('❌ Update check failed\n\nCheck your internet connection', 'error');
         };
         
         // Setup listeners
@@ -337,21 +370,52 @@ async function checkForUpdates() {
             console.log('✅ No update available, current version:', info.currentVersion);
             if (button) {
                 button.disabled = false;
-                button.innerHTML = '<i class="fa-solid fa-sync"></i> Check for Updates';
+                button.style.background = '';
+                button.innerHTML = '<i class="fa-solid fa-check"></i> Up to Date';
+                
+                // Reset after 3 seconds
+                setTimeout(() => {
+                    button.innerHTML = '<i class="fa-solid fa-sync"></i> Check for Updates';
+                }, 3000);
             }
-            alert(`✅ You're up to date!\n\nCurrent version: v${info.currentVersion}`);
+            showToast(`✅ You're up to date!\n\nCurrent: v${info.currentVersion}`, 'success');
         });
         
         // Trigger check
         window.electronAPI.checkForUpdates();
         
+        // Listen for download progress
+        window.electronAPI.onUpdateDownloadProgress((progress) => {
+            if (button) {
+                button.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ${Math.round(progress.percent)}%`;
+            }
+        });
+        
+        // Listen for download complete
+        window.electronAPI.onUpdateDownloaded(() => {
+            if (button) {
+                button.disabled = false;
+                button.style.background = 'rgba(34, 197, 94, 0.3)';
+                button.innerHTML = '<i class="fa-solid fa-rocket"></i> Restart Now';
+                
+                // Change button to restart
+                button.onclick = () => {
+                    if (confirm('🔄 Restart and install update now?\n\nThe app will close and reopen with the new version.')) {
+                        window.electronAPI.installUpdate();
+                    }
+                };
+            }
+            showToast('✅ Update downloaded!\n\nClick Restart Now to install.', 'success');
+        });
+        
         // Timeout fallback (in case no event fires)
         setTimeout(() => {
             if (button && button.disabled) {
                 button.disabled = false;
+                button.style.background = '';
                 button.innerHTML = '<i class="fa-solid fa-sync"></i> Check for Updates';
             }
-        }, 5000);
+        }, 10000);
         
         return;
     }
