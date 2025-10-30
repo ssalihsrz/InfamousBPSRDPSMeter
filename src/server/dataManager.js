@@ -379,6 +379,18 @@ class UserData {
     addTakenDamage(damage, isDead) {
         this.takenDamage += damage;
         if (isDead) this.deadCount++;
+        
+        // CRITICAL FIX: Update current HP when taking damage
+        // This is needed for accurate overheal calculations!
+        if (this.attr.hp !== undefined && damage > 0) {
+            const newHP = Math.max(0, this.attr.hp - damage);
+            this.attr.hp = newHP;
+            
+            // If HP reaches 0, mark as dead
+            if (newHP === 0 && !isDead) {
+                this.deadCount++;
+            }
+        }
     }
 
     updateRealtimeDps() {
@@ -965,6 +977,11 @@ class UserDataManager {
                 const currentHP = target.attr.hp;
                 const maxHP = target.attr.max_hp;
                 
+                // DEBUG: Log HP tracking state for first few heals
+                if (Math.random() < 0.01) { // 1% sample
+                    this.logger.info(`🩹 HEAL DEBUG: healer=${uid}, target=${targetUid}, healing=${healing}, currentHP=${currentHP}, maxHP=${maxHP}`);
+                }
+                
                 // CRITICAL FIX: Only calculate overheal if we have VALID HP data
                 // If HP data is missing/uninitialized, assume healing is effective
                 if (currentHP !== undefined && maxHP !== undefined && maxHP > 0) {
@@ -976,6 +993,11 @@ class UserDataManager {
                     
                     // Overheal = healing - effective healing
                     overheal = Math.max(0, healing - effectiveHealing);
+                    
+                    // DEBUG: Log overheal calculation
+                    if (Math.random() < 0.01) { // 1% sample
+                        this.logger.info(`🩹 OVERHEAL CALC: missingHP=${missingHP}, effectiveHealing=${effectiveHealing}, overheal=${overheal}`);
+                    }
                     
                     // Death prevented if target was below 30% HP before heal
                     const hpPercentBefore = (currentHP / maxHP) * 100;
@@ -989,6 +1011,9 @@ class UserDataManager {
                 } else {
                     // No valid HP data - assume all healing is effective (conservative approach)
                     // This prevents false overheal reporting when HP tracking is incomplete
+                    if (Math.random() < 0.01) { // 1% sample
+                        this.logger.warn(`⚠️ HP DATA MISSING: target=${targetUid}, currentHP=${currentHP}, maxHP=${maxHP} - assuming all healing is effective`);
+                    }
                     effectiveHealing = healing;
                     overheal = 0;
                 }
