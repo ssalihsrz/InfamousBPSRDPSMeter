@@ -14,7 +14,7 @@ const PacketProcessor = require(path.join(__dirname, 'algo', 'packet'));
 const MappingManager = require(path.join(__dirname, 'src', 'mapping-manager'));
 
 // Read version from package.json (works in both dev and production)
-let VERSION = '3.1.185'; // No "v" prefix - will be added where displayed
+let VERSION = '3.1.186'; // No "v" prefix - will be added where displayed
 try {
     const packageJson = require(path.join(__dirname, 'package.json'));
     VERSION = packageJson.version; // package.json has no "v" prefix
