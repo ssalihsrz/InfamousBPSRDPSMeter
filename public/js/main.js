@@ -894,6 +894,12 @@ function renderPlayers() {
         .map(uid => ({ uid, skills: skillsCache.get(uid) }));
     
     if (players.length === 0) {
+        // Hide column headers when no data (prevents visual mismatch)
+        const headers = document.querySelector('.column-headers');
+        if (headers) {
+            headers.style.display = 'none';
+        }
+        
         const list = document.getElementById('player-list');
         if (list) {
             // Don't show empty state if we just cleared (prevents flash during zone reset)
@@ -918,6 +924,12 @@ function renderPlayers() {
         }
         updateStatusBar([]);
         return;
+    }
+    
+    // Show column headers when we have data
+    const headers = document.querySelector('.column-headers');
+    if (headers) {
+        headers.style.display = '';
     }
     
     players.forEach(p => {
