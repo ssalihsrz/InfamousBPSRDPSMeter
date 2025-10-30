@@ -238,7 +238,7 @@ async function bulkDeleteSelected() {
     const sessionIds = Array.from(selectedSessions);
     
     try {
-        const response = await fetch('http://localhost:8989/api/sessions/delete-bulk', {
+        const response = await fetch('http://localhost:8989/api/sessions/bulk-delete', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ sessionIds })
@@ -274,7 +274,7 @@ async function deleteAllAutoSaved() {
     const sessionIds = autoSavedSessions.map(s => s.id);
     
     try {
-        const response = await fetch('http://localhost:8989/api/sessions/delete-bulk', {
+        const response = await fetch('http://localhost:8989/api/sessions/bulk-delete', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ sessionIds })
