@@ -36,13 +36,17 @@ const SETTINGS = {
             const res = await fetch('http://localhost:8989/api/settings/load');
             const data = await res.json();
             if (data.code === 0 && data.settings) {
+                console.log('📥 Received from backend:', JSON.stringify(data.settings, null, 2));
+                console.log(`🔍 autoUpdate from backend: "${data.settings.autoUpdate}"`);
+                
                 // Merge loaded settings
                 Object.keys(data.settings).forEach(key => {
                     if (key !== 'load' && key !== 'save') {
                         this[key] = data.settings[key];
                     }
                 });
-                console.log('✅ Settings loaded from AppData');
+                
+                console.log(`✅ Settings loaded - autoUpdate is now: "${this.autoUpdate}"`);
                 return true;
             }
         } catch (err) {
@@ -61,6 +65,9 @@ const SETTINGS = {
                 settingsToSave[key] = this[key];
             }
         });
+        
+        console.log('📤 Sending to backend:', JSON.stringify(settingsToSave, null, 2));
+        console.log(`🔍 autoUpdate in payload: "${settingsToSave.autoUpdate}"`);
         
         try {
             // Save to AppData
@@ -219,7 +226,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         SETTINGS.autoClearOnZoneChange = document.getElementById('setting-auto-clear-zone').checked;
         SETTINGS.keepDataAfterDungeon = document.getElementById('setting-keep-after-dungeon').checked;
         SETTINGS.defaultSort = document.getElementById('setting-default-sort').value;
-        SETTINGS.autoUpdate = document.getElementById('setting-auto-update').value;
+        
+        // CRITICAL: Auto-update setting
+        const autoUpdateSelect = document.getElementById('setting-auto-update');
+        const autoUpdateValue = autoUpdateSelect ? autoUpdateSelect.value : 'notify';
+        SETTINGS.autoUpdate = autoUpdateValue;
+        console.log(`🔄 Saving autoUpdate: "${autoUpdateValue}" (was: "${SETTINGS.autoUpdate}")`);
+        
         SETTINGS.overlayOpacity = parseFloat(document.getElementById('setting-overlay-opacity').value);
         
         // Compact columns
