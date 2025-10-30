@@ -1470,9 +1470,17 @@ class UserDataManager {
         return false;
     }
 
-    /** Detect zone/boss from enemy data */
+    /** Detect current zone/boss from enemy data */
     detectZoneContext() {
         const enemies = this.getAllEnemiesData();
+        
+        // DEBUG: Log all enemies for troubleshooting
+        if (Object.keys(enemies).length > 0) {
+            this.logger.debug('🔍 Detecting zone from enemies:');
+            for (const [enemyId, enemy] of Object.entries(enemies)) {
+                this.logger.debug(`  Enemy ID: ${enemyId}, Name: ${enemy.name || 'N/A'}, HP: ${enemy.hp || 0}`);
+            }
+        }
         
         // PRIORITY 1: Use mapping manager to detect bosses by ID (most reliable!)
         if (this.mappingManager) {
@@ -1481,6 +1489,7 @@ class UserDataManager {
                 
                 // SMART DISCOVERY: If ID not recognized but we have enemy name, try to learn it!
                 if (!bossName && enemy.name) {
+                    this.logger.debug(`  Attempting smart discovery for ID ${enemyId} with name "${enemy.name}"`);
                     bossName = this.mappingManager.smartDiscovery(enemyId, enemy.name);
                 }
                 
@@ -1488,6 +1497,8 @@ class UserDataManager {
                     // Got a boss match from the 78+ boss mapping database
                     const bossData = this.mappingManager.getBossData(bossName);
                     const mapName = bossData?.map;
+                    
+                    this.logger.info(`✅ Zone detected: ${bossName} (ID: ${enemyId}, Map: ${mapName || 'Unknown'})`);
                     
                     // Add emoji based on boss type
                     let emoji = '⚔️';
