@@ -1213,7 +1213,7 @@ class UserDataManager {
      * Get only active top players for frontend (reduces bandwidth/memory)
      * Returns top N players by damage + local player + party members
      */
-    getActiveUsersData(limit = 30) {
+    getActiveUsersData(limit = 20) {
         const allUsers = [];
         
         // Collect all users with their data
@@ -1225,10 +1225,14 @@ class UserDataManager {
             summary.isLocalPlayer = (uid === this.localPlayerUid);
             summary.damagePercent = this.calculateDamagePercent(uid);
             
-            // FIXED v3.1.144: Send ALL detected players to frontend
-            // Frontend will handle displaying "waiting for combat" message
-            // This allows showing player count before combat starts
-            allUsers.push(summary);
+            // CRITICAL: Only send players with actual combat data OR local/party
+            // This prevents UI clutter from nearby players who haven't started combat
+            const hasCombatData = (summary.total_damage?.total || 0) > 0 || (summary.total_healing?.total || 0) > 0;
+            const isImportant = summary.isLocalPlayer || summary.isPartyMember;
+            
+            if (hasCombatData || isImportant) {
+                allUsers.push(summary);
+            }
         }
         
         // Sort by total damage (descending)

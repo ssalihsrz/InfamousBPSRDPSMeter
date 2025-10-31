@@ -27,28 +27,29 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 60px 20px;
-    color: var(--text-secondary);
+    padding: 20px;
     text-align: center;
-    min-height: 200px;
+    color: var(--text-secondary);
+    min-height: 80px;
+    max-height: 120px;
 }
 
 .empty-state i {
-    font-size: 48px;
-    margin-bottom: 16px;
+    font-size: 32px;
+    margin-bottom: 8px;
     color: var(--text-secondary);
     opacity: 0.5;
 }
 
 .empty-state p {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 8px;
+    margin-bottom: 4px;
 }
 
 .empty-state small {
-    font-size: 13px;
+    font-size: 11px;
     color: var(--text-secondary);
     opacity: 0.8;
 }
