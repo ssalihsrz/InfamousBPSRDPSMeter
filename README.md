@@ -79,14 +79,14 @@
 
 ## 📋 Recent Releases
 
-### v3.1.195 - Expand Button Fix
+### v4.0.0 - Expand Button Fix
 - **Compact Mode** - Fixed expand button not showing top 20 players properly
 
-### v3.1.194 - Session Loading & GS Display
+### v4.0.0 - Session Loading & GS Display
 - **Loading State** - Fixed stuck loading when clicking second player
 - **GS Display** - Changed from "-" to "N/A" when Gear Score is missing
 
-### v3.1.193 - Dynamic Dropdown Refresh
+### v4.0.0 - Dynamic Dropdown Refresh
 - **Session Manager** - Operations now update main window dropdown immediately
 
 ---
@@ -154,7 +154,7 @@ pnpm dist
 \`\`\`
 
 #### Prerequisites:
-- **Node.js:** v22.15.0+ (Windows)
+- **Node.js:** v4.0.0+ (Windows)
 - **pnpm:** Latest version
 - **Windows 10/11:** Build must run on Windows
 - **Code signing:** Certificate installed for signing .exe

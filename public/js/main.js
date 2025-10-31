@@ -1,4 +1,4 @@
-// BPSR Meter v3.1.52 - Performance-Focused Implementation
+// BPSR Meter v4.0.0 - Performance-Focused Implementation
 // Optimized for robustness, usability, and smooth performance
 
 'use strict';
@@ -1041,7 +1041,7 @@ function renderPlayers() {
         const localPlayer = sorted.find(p => p.isLocalPlayer || p.uid === STATE.localPlayerUid);
         const otherPlayers = sorted.filter(p => !(p.isLocalPlayer || p.uid === STATE.localPlayerUid));
         
-        // CRITICAL v3.1.195: Respect showingAllPlayers in compact mode
+        // CRITICAL v4.0.0: Respect showingAllPlayers in compact mode
         const compactLimit = STATE.showingAllPlayers ? 19 : 5; // 20 total when expanded (local + 19), 6 when collapsed (local + 5)
         
         if (localPlayer) {
@@ -1236,7 +1236,7 @@ function renderPlayers() {
         });
     });
     
-    // CRITICAL v3.1.195: Restore cached skills for ALL currently expanded players
+    // CRITICAL v4.0.0: Restore cached skills for ALL currently expanded players
     // This prevents "Loading..." from persisting when switching between players
     requestAnimationFrame(() => {
         expandedPlayerIds.forEach(uid => {
@@ -1889,7 +1889,7 @@ function setupEventListeners() {
             e.preventDefault();
             e.stopPropagation();
             
-            // CRITICAL: Use popup window if available (v3.1.128+)
+            // CRITICAL: Use popup window if available (v4.0.0+)
             if (window.electronAPI?.openSettingsWindow) {
                 window.electronAPI.openSettingsWindow();
                 return; // Exit - popup window handles it
@@ -2856,7 +2856,7 @@ async function checkForUpdates() {
 }
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v3.1.195 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v4.0.0 - Initializing...');
     
     // CRITICAL: Check if this is a popup window
     const isPopup = await checkPopupMode();
@@ -4148,7 +4148,7 @@ function initializeSessionManagement() {
         });
     }
     
-    // CRITICAL v3.1.195: Listen for session changes from Session Manager popup
+    // CRITICAL v4.0.0: Listen for session changes from Session Manager popup
     // Refreshes dropdown after retrofit or delete operations
     if (window.electronAPI?.onSessionsChanged) {
         window.electronAPI.onSessionsChanged(() => {
