@@ -454,10 +454,12 @@ class Sniffer {
                                     
                                     // Determine clear behavior based on keepDataAfterDungeon setting
                                     if (!this.globalSettings.keepDataAfterDungeon) {
-                                        // Clear immediately
+                                        // Clear immediately (DON'T AWAIT - prevents packet processing block)
                                         if (hasExistingData) {
-                                            await this.userDataManager.clearAll(this.globalSettings);
-                                            console.log('🔄 Meter reset immediately (LOGIN PACKET: auto-clear enabled, keep-after-dungeon disabled)');
+                                            this.userDataManager.clearAll(this.globalSettings).catch(err => {
+                                                console.error('❌ clearAll() error:', err);
+                                            });
+                                            console.log('🔄 Meter reset started (LOGIN PACKET: auto-clear enabled, keep-after-dungeon disabled)');
                                         } else {
                                             // No data but ensure fresh state
                                             this.userDataManager.waitingForNewCombat = false;
