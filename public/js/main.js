@@ -925,6 +925,8 @@ function renderPlayers() {
             }
         }
         updateStatusBar([]);
+        // CRITICAL: Resize window when showing waiting state (after zone change/reset)
+        setTimeout(() => autoResizeWindow(), 100);
         return;
     }
     
