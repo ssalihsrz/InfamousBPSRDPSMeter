@@ -423,24 +423,20 @@ class UserData {
         const healingEfficiency = totalHealing > 0 ? (effectiveHealing / totalHealing) * 100 : 0;
         
         return {
-            realtime_dps: this.damageStats.realtimeStats.value,
-            realtime_dps_max: this.damageStats.realtimeStats.max,
-            max_dps: this.damageStats.realtimeStats.max, // Max DPS ever reached
-            current_dps: this.damageStats.realtimeStats.value, // Current DPS
-            total_dps: this.getTotalDps(), // Average DPS
-            total_damage: { ...this.damageStats.stats },
-            total_count: this.getTotalCount(),
-            realtime_hps: this.healingStats.realtimeStats.value,
-            realtime_hps_max: this.healingStats.realtimeStats.max,
+            name: this.name,
+            profession: this.profession + (this.subProfession ? `-${this.subProfession}` : ''),
+            total_dps: this.getTotalDps(),
             total_hps: this.getTotalHps(),
+            total_damage: {
+                ...this.damageStats.stats,
+                critRate: this.damageStats.getCritRate(),
+                luckyRate: this.damageStats.getLuckyRate(),
+            },
             total_healing: { 
                 ...this.healingStats.stats,
-                efficiency: healingEfficiency // Add efficiency percentage
+                efficiency: healingEfficiency // Percentage (0-100)
             },
             taken_damage: this.takenDamage,
-            profession: this.profession + (this.subProfession ? `-${this.subProfession}` : ''),
-            name: this.name,
-            fightPoint: this.fightPoint,
             hp: this.attr.hp,
             max_hp: this.attr.max_hp,
             dead_count: this.deadCount,
@@ -449,6 +445,8 @@ class UserData {
             maxDamage: this.damageStats.maxDamage,
             haste: this.attr.haste || 0, // Add haste stat
             mastery: this.attr.mastery || 0, // Add mastery stat
+            fightPoint: this.fightPoint, // CRITICAL: Always include Gear Score
+            g_score: this.fightPoint, // Alias for backwards compatibility
             attr: { ...this.attr },
         };
     }
@@ -754,9 +752,16 @@ class UserDataManager {
             }
         }, 5000); // Wait 5 seconds after startup to avoid blocking
         
-        // CRITICAL: Periodic auto-save every 2 minutes if there's active combat data
+        // CRITICAL: Periodic auto-save every 5 minutes if there's active combat data
         // This ensures sessions are saved even without character switches
+        // v4.0.0: Respects autoSaveSessions setting
         setInterval(async () => {
+            // Check if auto-save is enabled (v4.0.0)
+            if (!this.globalSettings.autoSaveSessions) {
+                this.logger.debug(`⏸️ Periodic auto-save disabled by user setting`);
+                return;
+            }
+            
             const now = Date.now();
             const timeSinceStart = now - this.startTime;
             const timeSinceLastSave = now - (this.lastAutoSaveTime || this.startTime);
@@ -765,27 +770,30 @@ class UserDataManager {
             
             if (this.users.size > 0) {
                 // Auto-save if:
-                // 1. At least 30 seconds have passed since combat started (not just random hits)
-                // 2. At least 2 minutes since last auto-save
-                if (timeSinceStart > 30000 && timeSinceLastSave > 120000) {
-                    this.logger.info(`⏰ Periodic auto-save triggered (2min interval) - Saving ${this.users.size} players`);
+                // 1. At least 60 seconds have passed since combat started (not just random hits)
+                // 2. At least 5 minutes since last auto-save (reduced frequency to avoid lag)
+                if (timeSinceStart > 60000 && timeSinceLastSave > 300000) {
+                    this.logger.info(`⏰ PERIODIC AUTO-SAVE TRIGGERED (5min interval) - Saving ${this.users.size} players`);
+                    console.log(`💾 [PERIODIC] Auto-saving session during combat (${Math.floor(timeSinceLastSave/1000)}s since last save)`);
                     // Safety check in case method doesn't exist
                     if (typeof this.autoSaveSession === 'function') {
                         try {
                             await this.autoSaveSession();
                             this.lastAutoSaveTime = now;
                             this.logger.info(`✅ Periodic auto-save completed successfully`);
+                            console.log(`✅ [PERIODIC] Auto-save complete`);
                         } catch (error) {
                             this.logger.error(`❌ Periodic auto-save failed:`, error);
+                            console.error(`❌ [PERIODIC] Auto-save failed:`, error);
                         }
                     } else {
                         this.logger.error(`❌ autoSaveSession is not a function!`);
                     }
                 } else {
-                    this.logger.info(`⏸️ Auto-save skipped: timeSinceStart=${Math.floor(timeSinceStart/1000)}s (need >30s), timeSinceLastSave=${Math.floor(timeSinceLastSave/1000)}s (need >120s)`);
+                    this.logger.debug(`⏸️ Auto-save skipped: timeSinceStart=${Math.floor(timeSinceStart/1000)}s (need >60s), timeSinceLastSave=${Math.floor(timeSinceLastSave/1000)}s (need >300s)`);
                 }
             }
-        }, 60000); // Check every 60 seconds
+        }, 120000); // Check every 2 minutes (but only save every 5 minutes)
     }
     
     /** Set mapping manager for boss/zone detection
@@ -1136,7 +1144,7 @@ class UserDataManager {
         }
     }
 
-    /** Set user fight score
+    /** Set fight point
      * @param {number} uid - User ID
      * @param {number} fightPoint - Fight score
      */
@@ -1144,7 +1152,9 @@ class UserDataManager {
         const user = this.getUser(uid);
         if (user.fightPoint != fightPoint) {
             user.setFightPoint(fightPoint);
-            this.logger.info(`Found fight point ${fightPoint} for uid ${uid}`);
+            // CRITICAL: Log GS updates prominently so users can verify it's being captured
+            this.logger.info(`🏅 GS UPDATE: UID ${uid} (${user.name || 'Unknown'}) → ${fightPoint}`);
+            console.log(`🏅 GS CAPTURED: ${user.name || `UID ${uid}`} - Gear Score: ${fightPoint}`);
         }
     }
 
@@ -1575,6 +1585,13 @@ class UserDataManager {
 
     /** Automatically save current session before clearing */
     async autoSaveSession() {
+        // Check if auto-save is enabled (v4.0.0)
+        if (!this.globalSettings.autoSaveSessions) {
+            this.logger.info('ℹ️ Auto-save disabled by user setting - skipping');
+            console.log('ℹ️ Auto-save disabled - skipping session save');
+            return;
+        }
+        
         try {
             const timestamp = Date.now();
             const userData = this.getAllUsersData();
@@ -1658,7 +1675,8 @@ class UserDataManager {
             // Clean up old auto-saved sessions (keep only 20)
             await this.cleanupOldSessions();
 
-            this.logger.info(`💾 Auto-saved session: ${players.length} players, ${sessionData.totalDps.toLocaleString()} DPS`);
+            this.logger.info(`💾 Auto-saved session: ${players.length} players, ${sessionData.totalDps.toLocaleString()} DPS, duration: ${duration}s`);
+            console.log(`💾 AUTO-SAVE: "${sessionName}" - ${players.length}p, ${sessionData.totalDps.toLocaleString()} DPS, ${duration}s`);
             
             // CRITICAL: Notify frontend to refresh session dropdown
             if (this.io) {

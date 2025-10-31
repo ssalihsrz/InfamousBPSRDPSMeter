@@ -504,7 +504,11 @@ class PacketProcessor {
                 this.userDataManager.setName(playerUid, charBase.Name);
             }
 
-            if (charBase.FightPoint) this.userDataManager.setFightPoint(playerUid, charBase.FightPoint);
+            // CRITICAL: Always capture Gear Score when available (FightPoint)
+            if (charBase.FightPoint) {
+                this.userDataManager.setFightPoint(playerUid, charBase.FightPoint);
+                this.logger.info(`📊 PACKET: GS captured for UID ${playerUid} → ${charBase.FightPoint}`);
+            }
 
             if (!vData.ProfessionList) return;
             const professionList = vData.ProfessionList;

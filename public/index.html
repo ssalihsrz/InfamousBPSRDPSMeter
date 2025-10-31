@@ -23,7 +23,7 @@
         <div class="title-bar">
             <div class="title-left">
                 <span class="logo">⚔️</span>
-                <span class="app-name">Infamous BPSR DPS Meter v3.1.195</span>
+                <span class="app-name">Infamous BPSR DPS Meter v4.0.0</span>
             </div>
             <div class="title-right">
                 <button class="header-btn" id="btn-compact-mode" title="Toggle Overlay Mode (In-Game)">
@@ -64,6 +64,13 @@
                     <i class="fa-solid fa-save"></i>
                 </button>
             </div>
+
+            <!-- Auto-Save Sessions Toggle -->
+            <label class="auto-save-toggle" title="Auto-save sessions on zone/dungeon/boss end">
+                <input type="checkbox" id="toggle-auto-save-sessions" checked>
+                <i class="fa-solid fa-floppy-disk"></i>
+                <span>Auto-Save</span>
+            </label>
 
             <button class="header-btn" id="btn-copy" title="Copy to Clipboard">
                 <i class="fa-solid fa-copy"></i>
@@ -392,33 +399,6 @@
                             <div class="tech-tags">
                                 <span>Electron</span><span>Node.js</span><span>Express</span><span>Socket.IO</span><span>Npcap</span><span>Protobuf</span>
                             </div>
-                        </div>
-                        
-                        <div class="about-section-compact" style="margin-top: 12px;">
-                            <strong style="font-size:11px;color:var(--accent-green)">
-                                <i class="fa-solid fa-download"></i> Auto-Update
-                            </strong>
-                            <div style="margin-top:8px;">
-                                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-                                    <span style="font-size:10px;color:var(--text-secondary);flex:1;">Update Mode:</span>
-                                    <select id="setting-auto-update-modal" style="padding:4px 8px;background:var(--bg-secondary);color:var(--text-primary);border:1px solid var(--border-color);border-radius:4px;font-size:10px;cursor:pointer;">
-                                        <option value="disable">Disabled</option>
-                                        <option value="notify" selected>Notify Only</option>
-                                        <option value="auto">Auto Install</option>
-                                    </select>
-                                </label>
-                            </div>
-                            <div style="font-size:9px;color:var(--text-secondary);margin-top:6px;line-height:1.3;">
-                                <p style="margin:0 0 2px 0;">• <strong>Disabled:</strong> No update checks</p>
-                                <p style="margin:0 0 2px 0;">• <strong>Notify Only:</strong> Show notification when update available</p>
-                                <p style="margin:0;">• <strong>Auto Install:</strong> Download and install updates automatically</p>
-                            </div>
-                        </div>
-                        
-                        <div class="about-section-compact" style="margin-top: 12px;">
-                            <button class="btn-secondary" onclick="checkForUpdates()" style="width:100%;font-size:11px;padding:8px 12px;">
-                                <i class="fa-solid fa-sync"></i> Check for Updates
-                            </button>
                         </div>
                         
                         <p style="font-size:10px;color:var(--text-secondary);margin-top:12px;text-align:center">

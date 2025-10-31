@@ -1037,20 +1037,70 @@ body.compact-mode .modal {
     align-items: center;
     gap: 6px;
     margin-right: 8px;
+    -webkit-app-region: no-drag;
 }
 
 .session-dropdown {
+    padding: 6px 12px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    outline: none;
+    -webkit-app-region: no-drag;
+    pointer-events: auto;
+    min-width: 200px;
+    max-width: 250px;
+}
+
+/* Auto-Save Toggle */
+.auto-save-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
     background: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: 4px;
-    color: var(--text-primary);
-    font-size: 11px;
-    padding: 4px 8px;
-    min-width: 180px;
-    max-width: 250px;
+    border-radius: 6px;
     cursor: pointer;
-    transition: all 0.15s;
-    height: 26px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-primary);
+    transition: all 0.2s ease;
+    -webkit-app-region: no-drag;
+    pointer-events: auto;
+    user-select: none;
+}
+
+.auto-save-toggle:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--accent-gold);
+}
+
+.auto-save-toggle input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+    accent-color: var(--accent-gold);
+    pointer-events: auto;
+}
+
+.auto-save-toggle i {
+    font-size: 12px;
+    color: var(--accent-gold);
+}
+
+.auto-save-toggle span {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.auto-save-toggle input[type="checkbox"]:not(:checked) ~ i,
+.auto-save-toggle input[type="checkbox"]:not(:checked) ~ span {
+    opacity: 0.5;
 }
 
 .session-dropdown:focus {

@@ -135,6 +135,7 @@ const SETTINGS = {
     rememberNames: true,
     autoClearOnZoneChange: true, // Clear data when entering combat after zone change
     keepDataAfterDungeon: true, // Don't clear immediately on zone exit
+    autoSaveSessions: true, // Auto-save sessions on zone/dungeon/boss end (NEW v4.0.0)
     overlayOpacity: 0.95, // PHASE 3: Overlay transparency (0.0-1.0)
     compactMode: false, // Persist compact vs full mode
     compactHealerMode: false, // Show healing metrics in compact mode
@@ -267,6 +268,7 @@ const SETTINGS = {
                 body: JSON.stringify({
                     autoClearOnZoneChange: settings.autoClearOnZoneChange,
                     keepDataAfterDungeon: settings.keepDataAfterDungeon,
+                    autoSaveSessions: settings.autoSaveSessions,
                     autoUpdate: settings.autoUpdate,
                     maxSessions: settings.maxSessions || 20
                 })
@@ -2351,6 +2353,14 @@ function setupEventListeners() {
         nameInput.value = '';
     });
     
+    // Check for Updates button (General tab) - v4.0.0
+    const checkUpdatesBtn = document.getElementById('btn-check-updates-general');
+    if (checkUpdatesBtn) {
+        checkUpdatesBtn.addEventListener('click', async () => {
+            await checkForUpdates();
+        });
+    }
+    
     // Save settings
     document.getElementById('save-settings').addEventListener('click', () => {
         // General settings
@@ -2938,7 +2948,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.195 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v4.0.0 - Ready!');
 }
 
 // ============================================================================
@@ -3844,6 +3854,12 @@ function generateSessionName(playerCount, duration) {
 
 // Auto-save session silently (for zone changes)
 async function autoSaveSession(sessionName) {
+    // Check if auto-save is enabled (v4.0.0)
+    if (!SETTINGS.autoSaveSessions) {
+        console.log('ℹ️ Auto-save disabled - skipping session save');
+        return;
+    }
+    
     if (STATE.players.size === 0) return;
     
     try {
@@ -4145,6 +4161,22 @@ function initializeSessionManagement() {
     const saveBtn = document.getElementById('btn-save-session');
     if (saveBtn) {
         saveBtn.addEventListener('click', saveCurrentSession);
+    }
+    
+    // Auto-save sessions toggle (v4.0.0)
+    const autoSaveToggle = document.getElementById('toggle-auto-save-sessions');
+    if (autoSaveToggle) {
+        // Set initial state from settings
+        autoSaveToggle.checked = SETTINGS.autoSaveSessions;
+        
+        // Handle toggle change
+        autoSaveToggle.addEventListener('change', (e) => {
+            SETTINGS.autoSaveSessions = e.target.checked;
+            SETTINGS.save();
+            const status = e.target.checked ? 'enabled' : 'disabled';
+            showToast(`Auto-save sessions ${status}`, 'info', 2000);
+            console.log(`💾 Auto-save sessions ${status}`);
+        });
     }
     
     // Session selector

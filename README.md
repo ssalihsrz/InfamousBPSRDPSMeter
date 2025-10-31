@@ -1,9 +1,9 @@
-# ⚔️ Infamous BPSR DPS Meter v3.1.195
+# ⚔️ Infamous BPSR DPS Meter v4.0.0
 
 **The Ultimate Blue Protocol Combat Tracker** - Real-time DPS/HPS analysis with modern UI
 
 [![License](https://img.shields.io/badge/License-AGPL--3.0-blue)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-3.1.195-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
+[![Version](https://img.shields.io/badge/Version-4.0.0-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue)](#installation)
 [![Downloads](https://img.shields.io/github/downloads/ssalihsrz/InfamousBPSRDPSMeter/total)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases)
 
@@ -15,12 +15,25 @@
 
 ---
 
-## 📋 Latest Release: v3.1.195
+## 📋 Latest Release: v4.0.0
 
-### 🐛 Critical Fix
-- **Expand Button Not Working** - Compact mode expand button now properly shows top 20 players
+### 🎯 Major Update - Session Control & Gear Score Fix
 
-[📥 Download v3.1.195](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)
+**New Features:**
+- 💾 **Auto-Save Sessions Toggle** - Quick checkbox in main UI to enable/disable session auto-saving
+- ⚙️ **Consolidated Settings** - Update settings moved to General tab (removed from About)
+- 🏅 **Gear Score Always Live** - Fixed GS not displaying (now always captured and shown)
+
+**Performance Improvements:**
+- ⏱️ **Reduced Auto-Save Frequency** - Periodic saves now every 5 minutes (was 2min) to reduce lag
+- 📊 **Enhanced Logging** - Clear console messages show when/why auto-saves trigger
+
+**Bug Fixes:**
+- ✅ Gear Score now properly included in all player data
+- ✅ Auto-save respects the new toggle setting
+- ✅ Better logging for debugging GS capture
+
+[📥 Download v4.0.0](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)
 
 ---
 
@@ -49,10 +62,11 @@
 
 ### 💾 **Data Persistence**
 - **Player Name Cache** - Remembers player names across sessions
-- **Auto-Save Sessions** - Configurable limit (10-100, default 20)
+- **Auto-Save Sessions** - Configurable limit (10-100, default 20) with quick toggle
 - **Manual Sessions** - Unlimited manual saves
 - **Settings Backup** - Survives uninstall/reinstall in AppData
 - **Session Export** - Copy stats to clipboard
+- **Auto-Save Control** - Toggle auto-save on/off from main UI
 
 ### ⚙️ **Settings & Control**
 - **Auto-Clear on Zone** - Optional meter reset on zone/dungeon change
@@ -65,16 +79,15 @@
 
 ## 📋 Recent Releases
 
+### v3.1.195 - Expand Button Fix
+- **Compact Mode** - Fixed expand button not showing top 20 players properly
+
 ### v3.1.194 - Session Loading & GS Display
-- **Loading... Persists** - Fixed stuck loading state when clicking second player
+- **Loading State** - Fixed stuck loading when clicking second player
 - **GS Display** - Changed from "-" to "N/A" when Gear Score is missing
 
 ### v3.1.193 - Dynamic Dropdown Refresh
-- **Dropdown Not Updating** - Session Manager operations now update main window dropdown immediately
-
-### v3.1.192 - Retrofit & Empty Session Prevention
-- **Retrofit Not Working** - Now properly updates ALL old session name formats
-- **Empty Sessions Saved** - Validates combat data before saving
+- **Session Manager** - Operations now update main window dropdown immediately
 
 ---
 
@@ -84,7 +97,7 @@
 
 **Step 1: Download the Latest Release**
 - 🔗 **[Download Installer](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)** ← Click here\!
-- Get: \`InfamousBPSRDPSMeter-Setup-3.1.195.exe\` (~90MB)
+- Get: \`InfamousBPSRDPSMeter-Setup-4.0.0.exe\` (~90MB)
 - 🆕 **Auto-Update:** Automatic update notifications from GitHub\!
 
 **Step 2: Install Npcap (Required)**
