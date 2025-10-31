@@ -80,7 +80,7 @@ body {
     flex-direction: column;
 }
 
-/* Title Bar - DRAGGABLE */
+/* Title Bar - Main header with controls */
 .title-bar {
     display: flex;
     align-items: center;
@@ -89,7 +89,7 @@ body {
     padding: 8px 12px;
     background: var(--bg-header);
     border-bottom: 1px solid var(--border);
-    -webkit-app-region: drag;
+    -webkit-app-region: drag; /* Entire bar is draggable by default */
     cursor: grab;
     flex-shrink: 0;
     width: 100%;
@@ -103,35 +103,30 @@ body {
     cursor: grabbing;
 }
 
-/* Container layout only - NO drag here to avoid conflicts */
+/* FIXED v3.1.191: Simplified drag hierarchy - containers inherit parent drag */
 .title-bar .title-left,
 .title-bar .title-right {
     display: flex;
     align-items: center;
     gap: 8px;
+    /* No explicit drag rule - inherits from parent */
 }
 
-/* Make specific text elements draggable */
+/* Text elements inherit drag from parent - no need for explicit rules */
 .title-bar .logo,
 .title-bar .app-name,
 .title-bar .duration {
-    -webkit-app-region: drag;
-    cursor: grab;
     pointer-events: none; /* Let drag events pass through to parent */
 }
 
-.title-bar:active .logo,
-.title-bar:active .app-name,
-.title-bar:active .duration {
-    cursor: grabbing;
-}
-
-/* Buttons and their children should NOT be draggable */
+/* CRITICAL: Buttons must override parent drag */
 .title-bar button,
-.title-bar button * {
+.title-bar button *,
+.title-bar select,
+.title-bar input {
     -webkit-app-region: no-drag !important;
     cursor: pointer !important;
-    pointer-events: auto !important; /* Buttons must be clickable */
+    pointer-events: auto !important;
 }
 
 .header-btn {
@@ -1094,7 +1089,7 @@ body.compact-mode .modal {
     cursor: grabbing;
 }
 
-/* Duration text is draggable */
+/* FIXED v3.1.191: Duration inherits drag from parent */
 .meter-header .duration {
     font-size: 13px;
     font-weight: 600;
@@ -1102,16 +1097,10 @@ body.compact-mode .modal {
     margin-left: auto;
     margin-right: 8px;
     flex-shrink: 0;
-    -webkit-app-region: drag;
-    cursor: grab;
-    pointer-events: none;
+    pointer-events: none; /* Let drag pass through */
 }
 
-.meter-header:active .duration {
-    cursor: grabbing;
-}
-
-/* Ensure buttons and interactive elements are not draggable */
+/* CRITICAL: Interactive elements must override parent drag */
 .meter-header button,
 .meter-header select,
 .meter-header input,
@@ -1120,7 +1109,7 @@ body.compact-mode .modal {
 .meter-header input * {
     -webkit-app-region: no-drag !important;
     cursor: pointer !important;
-    pointer-events: auto !important; /* Interactive elements must be clickable */
+    pointer-events: auto !important;
 }
 
 /* Settings Modal - Tabbed Interface */

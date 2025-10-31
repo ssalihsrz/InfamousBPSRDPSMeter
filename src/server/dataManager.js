@@ -1578,10 +1578,22 @@ class UserDataManager {
         try {
             const timestamp = Date.now();
             const userData = this.getAllUsersData();
-            const players = Object.entries(userData).map(([uid, summary]) => ({
-                uid: Number(uid),
-                ...summary
-            }));
+            
+            // CRITICAL FIX v3.1.191: Include skill data for all players (especially top 20)
+            const players = Object.entries(userData).map(([uid, summary]) => {
+                const playerData = {
+                    uid: Number(uid),
+                    ...summary
+                };
+                
+                // Add skills data to each player
+                const user = this.users.get(Number(uid));
+                if (user) {
+                    playerData.skills = user.getSkillSummary();
+                }
+                
+                return playerData;
+            });
 
             if (players.length === 0) return; // Don't save empty sessions
 
@@ -1589,10 +1601,18 @@ class UserDataManager {
             const zoneContext = this.detectZoneContext();
             const duration = this.getDuration();
             
-            // Format: MM/DD HH:MM AM/PM - Zone/Boss - Duration (X players)
+            // FIXED v3.1.191: Consistent sortable format
+            // Format: MM/DD HH:MM PM - Zone - Xm (Yp)
             const date = new Date(timestamp);
-            const dateStr = `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}`;
-            const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+            const hours = date.getHours();
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const hours12 = hours % 12 || 12;
+            
+            const timeStr = `${hours12}:${minutes} ${ampm}`;
+            const dateStr = `${month}/${day}`;
             const durationStr = duration > 0 ? this.formatDuration(duration) : '0s';
             const zoneName = zoneContext || 'Battle';
             const sessionName = `${dateStr} ${timeStr} - ${zoneName} - ${durationStr} (${players.length}p)`;
