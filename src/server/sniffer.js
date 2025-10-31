@@ -452,28 +452,15 @@ class Sniffer {
                                         }
                                     }
                                     
-                                    // Determine clear behavior based on keepDataAfterDungeon setting
-                                    if (!this.globalSettings.keepDataAfterDungeon) {
-                                        // Clear immediately (DON'T AWAIT - prevents packet processing block)
-                                        if (hasExistingData) {
-                                            this.userDataManager.clearAll(this.globalSettings).catch(err => {
-                                                console.error('❌ clearAll() error:', err);
-                                            });
-                                            console.log('🔄 Meter reset started (LOGIN PACKET: auto-clear enabled, keep-after-dungeon disabled)');
-                                        } else {
-                                            // No data but ensure fresh state
-                                            this.userDataManager.waitingForNewCombat = false;
-                                            console.log('ℹ️ No data to clear - starting fresh (LOGIN PACKET: auto-clear enabled)');
-                                        }
+                                    // CRITICAL FIX: Always use waitingForNewCombat flag (never call clearAll directly)
+                                    // Calling clearAll() creates race condition - names/GS captured during clearAll() get lost
+                                    // waitingForNewCombat triggers clear on first damage/heal with proper name preservation
+                                    if (hasExistingData) {
+                                        this.userDataManager.waitingForNewCombat = true;
+                                        console.log('⏳ Zone changed (LOGIN). Will reset on first damage/heal (preserves names)');
                                     } else {
-                                        // Set flag only if there's existing data to clear
-                                        if (hasExistingData) {
-                                            this.userDataManager.waitingForNewCombat = true;
-                                            console.log('⏳ Keeping old data visible. Will reset on first damage (LOGIN PACKET: auto-clear + keep-after-dungeon enabled).');
-                                        } else {
-                                            this.userDataManager.waitingForNewCombat = false;
-                                            console.log('ℹ️ Fresh start. Will begin tracking immediately (LOGIN PACKET: auto-clear + keep-after-dungeon enabled).');
-                                        }
+                                        this.userDataManager.waitingForNewCombat = false;
+                                        console.log('ℹ️ Zone changed (LOGIN). Fresh start - ready to track');
                                     }
                                 } else {
                                     // Auto-clear on zone is disabled - do nothing
