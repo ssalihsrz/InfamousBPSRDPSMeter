@@ -1234,7 +1234,7 @@ function renderPlayers() {
         });
     });
     
-    // CRITICAL v3.1.194: Restore cached skills for ALL currently expanded players
+    // CRITICAL v3.1.195: Restore cached skills for ALL currently expanded players
     // This prevents "Loading..." from persisting when switching between players
     requestAnimationFrame(() => {
         expandedPlayerIds.forEach(uid => {
@@ -2804,7 +2804,7 @@ async function checkForUpdates() {
         const data = await response.json();
         
         const latestVersion = data.tag_name.replace('v', '');
-        const currentVersion = '3.1.194';
+        const currentVersion = '3.1.195';
         
         if (button) {
             button.innerHTML = '<i class="fa-solid fa-check"></i> Check Complete';
@@ -2846,7 +2846,7 @@ async function checkForUpdates() {
 }
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v3.1.194 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v3.1.195 - Initializing...');
     
     // CRITICAL: Check if this is a popup window
     const isPopup = await checkPopupMode();
@@ -2938,7 +2938,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.194 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.195 - Ready!');
 }
 
 // ============================================================================
@@ -4132,7 +4132,7 @@ function initializeSessionManagement() {
         });
     }
     
-    // CRITICAL v3.1.194: Listen for session changes from Session Manager popup
+    // CRITICAL v3.1.195: Listen for session changes from Session Manager popup
     // Refreshes dropdown after retrofit or delete operations
     if (window.electronAPI?.onSessionsChanged) {
         window.electronAPI.onSessionsChanged(() => {
