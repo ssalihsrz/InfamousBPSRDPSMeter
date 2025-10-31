@@ -17,8 +17,9 @@
 
 ## 📋 Latest Release: v3.1.194
 
-### 🐛 Critical Fix
-- **Dropdown Not Updating** - Session Manager operations (retrofit, delete) now update main window dropdown immediately
+### 🐛 Critical Fixes
+- **Loading... Persists** - Fixed stuck loading state when clicking second player in saved sessions
+- **GS Display** - Changed from "-" to "N/A" when Gear Score is missing (clearer UX)
 
 [📥 Download v3.1.194](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)
 
@@ -65,6 +66,9 @@
 
 ## 📋 Recent Releases
 
+### v3.1.193 - Dynamic Dropdown Refresh
+- **Dropdown Not Updating** - Session Manager operations now update main window dropdown immediately
+
 ### v3.1.192 - Retrofit & Empty Session Prevention
 - **Retrofit Not Working** - Now properly updates ALL old session name formats
 - **Empty Sessions Saved** - Validates combat data before saving
@@ -72,10 +76,6 @@
 ### v3.1.191 - Skills, Sorting & Dragging
 - **Skills Data Missing** - Auto-saved sessions now include full skill breakdown
 - **Session Sorting** - Standardized filename format for consistent sorting
-- **Window Dragging** - Simplified CSS hierarchy for reliable dragging
-
-### v3.1.190 - Startup Crash Hotfix
-- **App Crashes on Startup** - Fixed Socket.IO initialization order
 
 ---
 
