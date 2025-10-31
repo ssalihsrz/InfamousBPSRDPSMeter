@@ -18,10 +18,8 @@
 ## 📋 Latest Release: v3.1.192
 
 ### 🐛 Critical Fixes
-- **Skills Data Missing** - Auto-saved sessions now include full skill breakdown
-- **Session Sorting** - Standardized filename format for consistent chronological sorting
-- **Window Dragging** - Simplified CSS hierarchy for reliable dragging
-- **Overhealing Metrics** - All healer efficiency calculations verified working
+- **Retrofit Not Working** - Now properly updates ALL old session name formats to current standard
+- **Empty Sessions Saved** - Validates combat data before saving (local player or top 5 must have DPS/HPS)
 
 [📥 Download v3.1.192](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)
 
@@ -67,6 +65,11 @@
 ---
 
 ## 📋 Recent Releases
+
+### v3.1.191 - Skills, Sorting & Dragging
+- **Skills Data Missing** - Auto-saved sessions now include full skill breakdown
+- **Session Sorting** - Standardized filename format for consistent sorting
+- **Window Dragging** - Simplified CSS hierarchy for reliable dragging
 
 ### v3.1.190 - Startup Crash Hotfix
 - **App Crashes on Startup** - Fixed Socket.IO initialization order
