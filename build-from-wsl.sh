@@ -104,4 +104,17 @@ else
 fi
 
 echo ""
+echo "[CLEANUP] Removing old installers (keeping last 3)..."
+cd /development
+# Keep only the 3 most recent installers
+OLD_INSTALLERS=$(ls -t InfamousBPSRDPSMeter-Setup-*.exe 2>/dev/null | tail -n +4)
+if [ -n "$OLD_INSTALLERS" ]; then
+    echo "$OLD_INSTALLERS" | xargs rm -v
+    COUNT=$(echo "$OLD_INSTALLERS" | wc -l)
+    echo "✓ Removed $COUNT old installer(s)"
+else
+    echo "✓ No old installers to remove"
+fi
+
+echo ""
 echo "Done!"
