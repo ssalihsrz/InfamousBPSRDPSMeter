@@ -429,8 +429,13 @@ class UserData {
         return {
             name: this.name,
             profession: this.profession + (this.subProfession ? `-${this.subProfession}` : ''),
-            total_dps: this.getTotalDps(),
-            total_hps: this.getTotalHps(),
+            // CRITICAL: Send BOTH realtime (current) AND average DPS/HPS
+            current_dps: this.damageStats.realtimeStats.value,
+            max_dps: this.damageStats.realtimeStats.max,
+            current_hps: this.healingStats.realtimeStats.value,
+            max_hps: this.healingStats.realtimeStats.max,
+            total_dps: this.getTotalDps(), // Average DPS over session
+            total_hps: this.getTotalHps(), // Average HPS over session
             total_damage: {
                 ...this.damageStats.stats,
                 critRate: critRate,
