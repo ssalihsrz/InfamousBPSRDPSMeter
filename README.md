@@ -17,9 +17,8 @@
 
 ## 📋 Latest Release: v3.1.193
 
-### 🐛 Critical Fixes
-- **Retrofit Not Working** - Now properly updates ALL old session name formats to current standard
-- **Empty Sessions Saved** - Validates combat data before saving (local player or top 5 must have DPS/HPS)
+### 🐛 Critical Fix
+- **Dropdown Not Updating** - Session Manager operations (retrofit, delete) now update main window dropdown immediately
 
 [📥 Download v3.1.193](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)
 
@@ -66,6 +65,10 @@
 
 ## 📋 Recent Releases
 
+### v3.1.192 - Retrofit & Empty Session Prevention
+- **Retrofit Not Working** - Now properly updates ALL old session name formats
+- **Empty Sessions Saved** - Validates combat data before saving
+
 ### v3.1.191 - Skills, Sorting & Dragging
 - **Skills Data Missing** - Auto-saved sessions now include full skill breakdown
 - **Session Sorting** - Standardized filename format for consistent sorting
@@ -73,10 +76,6 @@
 
 ### v3.1.190 - Startup Crash Hotfix
 - **App Crashes on Startup** - Fixed Socket.IO initialization order
-
-### v3.1.189 - Session Dropdown Refresh
-- **Real-Time Session Updates** - Dropdown refreshes immediately after auto-save
-- **Skills Preservation** - Skills data never cleared mid-session
 
 ---
 
