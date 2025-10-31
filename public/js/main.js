@@ -758,7 +758,7 @@ function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
                     <div class="cell-value">${formatNumber(overheal)}</div>
                     <div class="cell-value">${formatNumber(hps)}${maxHps > 0 ? ` / ${formatNumber(maxHps)}` : ''}</div>
                     <div class="cell-value">${formatNumber(dmgTaken)}</div>
-                    <div class="cell-value">${gs > 0 ? formatNumber(gs) : '-'}</div>
+                    <div class="cell-value">${gs > 0 ? formatNumber(gs) : '<span style="opacity:0.5">N/A</span>'}</div>
                 </div>
                 ${isExpanded ? renderPlayerDetails(player) : ''}
             </div>
@@ -789,7 +789,7 @@ function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
                 <div class="cell-value">${formatNumber(totalDmg)} <span class="contribution-percent">(${contributionPercent}%)</span></div>
                 <div class="cell-value">${formatNumber(hps)}${maxHps > 0 ? ` / ${formatNumber(maxHps)}` : ''}</div>
                 <div class="cell-value">${formatNumber(dmgTaken)}</div>
-                <div class="cell-value">${gs > 0 ? formatNumber(gs) : '-'}</div>
+                <div class="cell-value">${gs > 0 ? formatNumber(gs) : '<span style="opacity:0.5">N/A</span>'}</div>
             </div>
             ${isExpanded ? renderPlayerDetails(player) : ''}
         </div>
