@@ -176,6 +176,14 @@ id_rsa*
 id_ed25519*
 .ssh/
 
+# Security audits - NEVER COMMIT SECURITY REPORTS
+SECURITY_AUDIT*.md
+SECURITY_REPORT*.md
+AUDIT_REPORT*.md
+*SECURITY*AUDIT*.md
+security-audit*.md
+audit-report*.md
+
 # Git files
 *.orig
 *.BACKUP.*
