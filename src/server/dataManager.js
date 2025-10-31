@@ -422,6 +422,10 @@ class UserData {
         const effectiveHealing = this.healingStats.stats.effective;
         const healingEfficiency = totalHealing > 0 ? (effectiveHealing / totalHealing) * 100 : 0;
         
+        // Calculate crit/lucky rates
+        const critRate = this.damageStats.count.total > 0 ? ((this.damageStats.totalCrits / this.damageStats.count.total) * 100) : 0;
+        const luckyRate = this.damageStats.count.total > 0 ? ((this.damageStats.totalLuckies / this.damageStats.count.total) * 100) : 0;
+        
         return {
             name: this.name,
             profession: this.profession + (this.subProfession ? `-${this.subProfession}` : ''),
@@ -429,8 +433,8 @@ class UserData {
             total_hps: this.getTotalHps(),
             total_damage: {
                 ...this.damageStats.stats,
-                critRate: this.damageStats.getCritRate(),
-                luckyRate: this.damageStats.getLuckyRate(),
+                critRate: critRate,
+                luckyRate: luckyRate,
             },
             total_healing: { 
                 ...this.healingStats.stats,
@@ -440,11 +444,11 @@ class UserData {
             hp: this.attr.hp,
             max_hp: this.attr.max_hp,
             dead_count: this.deadCount,
-            critRate: this.damageStats.count.total > 0 ? ((this.damageStats.totalCrits / this.damageStats.count.total) * 100) : 0,
-            luckyRate: this.damageStats.count.total > 0 ? ((this.damageStats.totalLuckies / this.damageStats.count.total) * 100) : 0,
+            critRate: critRate,
+            luckyRate: luckyRate,
             maxDamage: this.damageStats.maxDamage,
-            haste: this.attr.haste || 0, // Add haste stat
-            mastery: this.attr.mastery || 0, // Add mastery stat
+            haste: this.attr.haste || 0,
+            mastery: this.attr.mastery || 0,
             fightPoint: this.fightPoint, // CRITICAL: Always include Gear Score
             g_score: this.fightPoint, // Alias for backwards compatibility
             attr: { ...this.attr },
