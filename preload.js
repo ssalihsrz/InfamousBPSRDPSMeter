@@ -27,6 +27,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     closeSettingsWindow: () => ipcRenderer.send('close-settings-window'),
     openSessionManagerWindow: () => ipcRenderer.send('open-session-manager-window'),
     closeSessionManagerWindow: () => ipcRenderer.send('close-session-manager-window'),
+    // Session Manager notifications
+    notifySessionsChanged: () => ipcRenderer.send('sessions-changed'),
+    onSessionsChanged: (callback) => ipcRenderer.on('refresh-sessions', () => callback()),
     // Auto-updater APIs
     checkForUpdates: () => ipcRenderer.send('check-for-updates-manual'),
     downloadUpdate: () => ipcRenderer.send('download-update'),

@@ -641,6 +641,14 @@ const updaterManager = new AutoUpdaterManager(app, logToFile);
             sessionManagerWindow.close();
         }
     });
+    
+    // CRITICAL v3.1.193: Notify main window when sessions are changed
+    // This allows dropdown to refresh after retrofit or delete operations
+    ipcMain.on('sessions-changed', () => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('refresh-sessions');
+        }
+    });
 }
 
 app.whenReady().then(() => {

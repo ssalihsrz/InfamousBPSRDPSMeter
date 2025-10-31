@@ -214,9 +214,14 @@ async function retrofitOldSessions() {
         const data = await response.json();
         showToast(`✅ Retrofitted ${data.updated} sessions!`, 'success');
         
-        // Reload sessions
+        // Reload sessions in popup
         const sessions = await fetchAllSessions();
         renderSessions(sessions);
+        
+        // CRITICAL v3.1.193: Notify main window to refresh dropdown
+        if (window.electronAPI?.notifySessionsChanged) {
+            window.electronAPI.notifySessionsChanged();
+        }
         
     } catch (error) {
         console.error('Failed to retrofit sessions:', error);
@@ -253,6 +258,11 @@ async function bulkDeleteSelected() {
         const sessions = await fetchAllSessions();
         renderSessions(sessions);
         
+        // CRITICAL v3.1.193: Notify main window to refresh dropdown
+        if (window.electronAPI?.notifySessionsChanged) {
+            window.electronAPI.notifySessionsChanged();
+        }
+        
     } catch (error) {
         console.error('❌ Delete failed:', error);
         showToast('Failed to delete sessions', 'error');
@@ -287,6 +297,11 @@ async function deleteAllAutoSaved() {
         // Reload sessions
         const sessions = await fetchAllSessions();
         renderSessions(sessions);
+        
+        // CRITICAL v3.1.193: Notify main window to refresh dropdown
+        if (window.electronAPI?.notifySessionsChanged) {
+            window.electronAPI.notifySessionsChanged();
+        }
         
     } catch (error) {
         console.error('Failed to delete sessions:', error);
@@ -348,6 +363,11 @@ async function deleteSingleSession(sessionId) {
         // Reload sessions
         const sessions = await fetchAllSessions();
         renderSessions(sessions);
+        
+        // CRITICAL v3.1.193: Notify main window to refresh dropdown
+        if (window.electronAPI?.notifySessionsChanged) {
+            window.electronAPI.notifySessionsChanged();
+        }
         
     } catch (error) {
         console.error('Failed to delete session:', error);

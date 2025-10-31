@@ -4113,6 +4113,15 @@ function initializeSessionManagement() {
         });
     }
     
+    // CRITICAL v3.1.193: Listen for session changes from Session Manager popup
+    // Refreshes dropdown after retrofit or delete operations
+    if (window.electronAPI?.onSessionsChanged) {
+        window.electronAPI.onSessionsChanged(() => {
+            console.log('📡 Received sessions-changed notification from popup');
+            loadSessions();
+        });
+    }
+    
     // Save session button
     const saveBtn = document.getElementById('btn-save-session');
     if (saveBtn) {
