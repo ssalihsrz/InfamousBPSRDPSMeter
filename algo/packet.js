@@ -558,7 +558,11 @@ class PacketProcessor {
                     case 35: // FightPoint
                         const fightPoint = messageReader.readUInt32LE();
                         messageReader.readInt32();
-                        this.userDataManager.setFightPoint(currentUserUuid.shiftRight(16).toNumber(), fightPoint);
+                        const localUid = currentUserUuid.shiftRight(16).toNumber();
+                        const localName = this.userDataManager.getUser(localUid)?.name || 'Unknown';
+                        this.logger.info(`📊 GS CAPTURED via SyncContainerDirtyData field 35: 👤 LOCAL PLAYER - ${localName} (UID ${localUid}) → ${fightPoint}`);
+                        console.log(`🏅 GS: 👤 LOCAL PLAYER ${localName} (${localUid}) = ${fightPoint}`);
+                        this.userDataManager.setFightPoint(localUid, fightPoint);
                         break;
                     default:
                         // unhandle
@@ -629,6 +633,11 @@ class PacketProcessor {
                     break;
                 case AttrType.AttrFightPoint:
                     const playerFightPoint = reader.int32();
+                    const playerName = this.userDataManager.getUser(playerUid)?.name || 'Unknown';
+                    const isLocalPlayer = (playerUid === (currentUserUuid.shiftRight(16).toNumber()));
+                    const playerType = isLocalPlayer ? '👤 LOCAL PLAYER' : '👥 OTHER PLAYER';
+                    this.logger.info(`📊 GS CAPTURED via AttrFightPoint: ${playerType} - ${playerName} (UID ${playerUid}) → ${playerFightPoint}`);
+                    console.log(`🏅 GS: ${playerType} ${playerName} (${playerUid}) = ${playerFightPoint}`);
                     this.userDataManager.setFightPoint(playerUid, playerFightPoint);
                     break;
                 case AttrType.AttrLevel:
