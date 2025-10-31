@@ -17,21 +17,22 @@
 
 ## 📋 Latest Release: v4.0.0
 
-### 🎯 Major Update - Session Control & Gear Score Fix
+### 🎯 Major Update - Critical Fixes & Enhancements
+
+**Critical Bug Fixes:**
+- 🔴 **DPS Calculations Restored** - Fixed realtime DPS showing 0 for all players (broken in hotfix)
+- 🔴 **Crash Fix** - Resolved getCritRate/getLuckyRate method crash on combat start
+- 📝 **Session Naming** - Standardized all sessions to: `MM/DD HH:MM AM/PM - Zone - Duration (Xp)`
+
+**UI/UX Improvements:**
+- 🎨 **Compact Empty State** - Fixed UI going "out of shape" during zone transitions
+- 👥 **Smart Player Filtering** - Only shows top 20 active combatants (no idle nearby players)
+- 🏅 **Gear Score Debugging** - Enhanced logging to diagnose GS capture issues
 
 **New Features:**
 - 💾 **Auto-Save Sessions Toggle** - Quick checkbox in main UI to enable/disable session auto-saving
 - ⚙️ **Consolidated Settings** - Update settings moved to General tab (removed from About)
-- 🏅 **Gear Score Always Live** - Fixed GS not displaying (now always captured and shown)
-
-**Performance Improvements:**
-- ⏱️ **Reduced Auto-Save Frequency** - Periodic saves now every 5 minutes (was 2min) to reduce lag
-- 📊 **Enhanced Logging** - Clear console messages show when/why auto-saves trigger
-
-**Bug Fixes:**
-- ✅ Gear Score now properly included in all player data
-- ✅ Auto-save respects the new toggle setting
-- ✅ Better logging for debugging GS capture
+- 📊 **Realtime Stats** - Current DPS, Max DPS, Average DPS all working properly
 
 [📥 Download v4.0.0](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)
 
