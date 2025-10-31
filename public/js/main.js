@@ -1033,18 +1033,21 @@ function renderPlayers() {
     // Show top 10 by default, rest behind "Show More"
     const isCompact = document.body.classList.contains('compact-mode');
     
-    // Compact mode: Local always first, then top 5 others (max 6 total)
+    // Compact mode: Local always first, then top 5 others (max 6 total), or top 20 when expanded
     let playersToShow;
     if (isCompact) {
         const localPlayer = sorted.find(p => p.isLocalPlayer || p.uid === STATE.localPlayerUid);
         const otherPlayers = sorted.filter(p => !(p.isLocalPlayer || p.uid === STATE.localPlayerUid));
         
+        // CRITICAL v3.1.195: Respect showingAllPlayers in compact mode
+        const compactLimit = STATE.showingAllPlayers ? 19 : 5; // 20 total when expanded (local + 19), 6 when collapsed (local + 5)
+        
         if (localPlayer) {
-            // Local exists: Show local + top 5 others = max 6
-            playersToShow = [localPlayer, ...otherPlayers.slice(0, 5)];
+            // Local exists: Show local + top N others
+            playersToShow = [localPlayer, ...otherPlayers.slice(0, compactLimit)];
         } else {
-            // No local: Show top 5
-            playersToShow = sorted.slice(0, 5);
+            // No local: Show top N
+            playersToShow = sorted.slice(0, compactLimit + 1);
         }
     } else {
         // Full mode: Local player always at top (if not already in top positions), then top players
@@ -2175,10 +2178,15 @@ function setupEventListeners() {
     });
     
     // Expand/Collapse player list in compact mode (Show All in compact)
-    document.getElementById('btn-expand-list')?.addEventListener('click', () => {
+    const btnExpandList = document.getElementById('btn-expand-list');
+    btnExpandList?.addEventListener('click', () => {
         STATE.showingAllPlayers = !STATE.showingAllPlayers;
+        // Update button text
+        if (btnExpandList) {
+            btnExpandList.textContent = STATE.showingAllPlayers ? 'Collapse' : 'Expand';
+        }
         renderPlayers();
-        showToast(STATE.showingAllPlayers ? 'Showing All Players' : 'Showing Top Players', 'info', 1000);
+        showToast(STATE.showingAllPlayers ? 'Showing Top 20 Players' : 'Showing Top 6 Players', 'info', 1000);
     });
     
     // Show More button in header (for full mode)
