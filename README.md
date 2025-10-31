@@ -2,10 +2,10 @@
 
 **The Ultimate Blue Protocol Combat Tracker** - Real-time DPS/HPS analysis with modern UI
 
-[\![License](https://img.shields.io/badge/License-AGPL--3.0-blue)](LICENSE)
-[\![Version](https://img.shields.io/badge/Version-3.1.194-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
-[\![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue)](#installation)
-[\![Downloads](https://img.shields.io/github/downloads/ssalihsrz/InfamousBPSRDPSMeter/total)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases)
+[![License](https://img.shields.io/badge/License-AGPL--3.0-blue)](LICENSE)
+[![Version](https://img.shields.io/badge/Version-3.1.194-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
+[![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue)](#installation)
+[![Downloads](https://img.shields.io/github/downloads/ssalihsrz/InfamousBPSRDPSMeter/total)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases)
 
 > **🌟 Original Project:** [StarResonanceDamageCounter](https://github.com/dmlgzs/StarResonanceDamageCounter) by dmlgzs  
 > **🔱 Forked From:** [NeRooNx/BPSR-Meter](https://github.com/NeRooNx/BPSR-Meter)  
