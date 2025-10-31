@@ -1,9 +1,9 @@
-# ⚔️ Infamous BPSR DPS Meter v3.1.168
+# ⚔️ Infamous BPSR DPS Meter v3.1.191
 
 **The Ultimate Blue Protocol Combat Tracker** - Real-time DPS/HPS analysis with modern UI
 
 [![License](https://img.shields.io/badge/License-AGPL--3.0-blue)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-3.1.168-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
+[![Version](https://img.shields.io/badge/Version-3.1.191-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue)](#installation)
 [![Downloads](https://img.shields.io/github/downloads/ssalihsrz/InfamousBPSRDPSMeter/total)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases)
 
@@ -13,7 +13,75 @@
 > 
 > This enhanced edition builds upon excellent work from the Blue Protocol community with improved stability, performance, session management, and healer support.
 
-## 📋 What's New in v3.1.168
+---
+
+## 📋 Latest Release: v3.1.191
+
+### 🐛 Critical Fixes
+- **Skills Data Missing** - Auto-saved sessions now include full skill breakdown
+- **Session Sorting** - Standardized filename format for consistent chronological sorting
+- **Window Dragging** - Simplified CSS hierarchy for reliable dragging
+- **Overhealing Metrics** - All healer efficiency calculations verified working
+
+[📥 Download v3.1.191](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)
+
+---
+
+## ⚡ Key Features
+
+### 📊 **Combat Tracking**
+- **Real-Time DPS/HPS** - Live damage and healing per second tracking
+- **Top 30 Players** - Automatic player prioritization by performance
+- **Skill Breakdown** - Detailed skill usage, crit rate, lucky rate for all players
+- **Session Management** - Auto-save combat sessions with dropdown navigation
+- **Zone Detection** - Automatic boss/dungeon name detection
+
+### 💊 **Healer Support**
+- **Healer Mode** - Toggle between DPS and HPS display
+- **Overheal Tracking** - Effective healing vs overheal calculations
+- **Healing Efficiency** - Real-time efficiency percentage
+- **Deaths Prevented** - Counter for clutch heals (<30% HP saves)
+
+### 🎨 **UI & Display**
+- **Compact Mode** - Minimal overlay for maximum gameplay visibility
+- **Full Mode** - Detailed statistics and expanded columns
+- **Draggable Window** - Position anywhere on screen
+- **Customizable Columns** - Show/hide columns per mode
+- **Separate Scaling** - Independent zoom for compact/full modes
+- **Always on Top** - Optional window priority
+
+### 💾 **Data Persistence**
+- **Player Name Cache** - Remembers player names across sessions
+- **Auto-Save Sessions** - Configurable limit (10-100, default 20)
+- **Manual Sessions** - Unlimited manual saves
+- **Settings Backup** - Survives uninstall/reinstall in AppData
+- **Session Export** - Copy stats to clipboard
+
+### ⚙️ **Settings & Control**
+- **Auto-Clear on Zone** - Optional meter reset on zone/dungeon change
+- **Keep After Dungeon** - Delay clear until first damage in new zone
+- **Auto-Update** - Automatic update notifications from GitHub
+- **Opacity Control** - Adjustable window transparency
+- **Performance Modes** - Optimized rendering options
+
+---
+
+## 📋 Recent Releases
+
+### v3.1.190 - Startup Crash Hotfix
+- **App Crashes on Startup** - Fixed Socket.IO initialization order
+
+### v3.1.189 - Session Dropdown Refresh
+- **Real-Time Session Updates** - Dropdown refreshes immediately after auto-save
+- **Skills Preservation** - Skills data never cleared mid-session
+
+### v3.1.188 - Session Management
+- **Auto-Save Notifications** - Toast notifications for session saves
+- **Dropdown Integration** - Real-time session list updates
+
+---
+
+## 📋 Previous Updates (v3.1.168)
 
 ### 🚨 **CRITICAL FIX: Zone Change Not Clearing Meter + Data Accumulation**
 
@@ -963,7 +1031,7 @@ const hasExistingData = lastLogTime !== 0 && hasCombatData;
 
 **Step 1: Download the Latest Release**
 - 🔗 **[Download Installer](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)** ← Click here!
-- Get: `InfamousBPSRDPSMeter-Setup-3.1.168.exe` (~90MB)
+- Get: `InfamousBPSRDPSMeter-Setup-3.1.191.exe` (~90MB)
 - 🆕 **Auto-Update:** Automatic update notifications from GitHub!
 
 **Step 2: Install Npcap (Required)**
