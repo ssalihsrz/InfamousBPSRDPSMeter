@@ -633,11 +633,11 @@ class PacketProcessor {
                     break;
                 case AttrType.AttrFightPoint:
                     const playerFightPoint = reader.int32();
-                    const playerName = this.userDataManager.getUser(playerUid)?.name || 'Unknown';
+                    const gsPlayerName = this.userDataManager.getUser(playerUid)?.name || 'Unknown';
                     const isLocalPlayer = (playerUid === (currentUserUuid.shiftRight(16).toNumber()));
                     const playerType = isLocalPlayer ? '👤 LOCAL PLAYER' : '👥 OTHER PLAYER';
-                    this.logger.info(`📊 GS CAPTURED via AttrFightPoint: ${playerType} - ${playerName} (UID ${playerUid}) → ${playerFightPoint}`);
-                    console.log(`🏅 GS: ${playerType} ${playerName} (${playerUid}) = ${playerFightPoint}`);
+                    this.logger.info(`📊 GS CAPTURED via AttrFightPoint: ${playerType} - ${gsPlayerName} (UID ${playerUid}) → ${playerFightPoint}`);
+                    console.log(`🏅 GS: ${playerType} ${gsPlayerName} (${playerUid}) = ${playerFightPoint}`);
                     this.userDataManager.setFightPoint(playerUid, playerFightPoint);
                     break;
                 case AttrType.AttrLevel:
