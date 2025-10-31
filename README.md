@@ -1,9 +1,9 @@
-# ⚔️ Infamous BPSR DPS Meter v3.1.192
+# ⚔️ Infamous BPSR DPS Meter v3.1.193
 
 **The Ultimate Blue Protocol Combat Tracker** - Real-time DPS/HPS analysis with modern UI
 
 [\![License](https://img.shields.io/badge/License-AGPL--3.0-blue)](LICENSE)
-[\![Version](https://img.shields.io/badge/Version-3.1.192-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
+[\![Version](https://img.shields.io/badge/Version-3.1.193-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
 [\![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue)](#installation)
 [\![Downloads](https://img.shields.io/github/downloads/ssalihsrz/InfamousBPSRDPSMeter/total)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases)
 
@@ -15,13 +15,13 @@
 
 ---
 
-## 📋 Latest Release: v3.1.192
+## 📋 Latest Release: v3.1.193
 
 ### 🐛 Critical Fixes
 - **Retrofit Not Working** - Now properly updates ALL old session name formats to current standard
 - **Empty Sessions Saved** - Validates combat data before saving (local player or top 5 must have DPS/HPS)
 
-[📥 Download v3.1.192](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)
+[📥 Download v3.1.193](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)
 
 ---
 
@@ -86,7 +86,7 @@
 
 **Step 1: Download the Latest Release**
 - 🔗 **[Download Installer](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)** ← Click here\!
-- Get: \`InfamousBPSRDPSMeter-Setup-3.1.192.exe\` (~90MB)
+- Get: \`InfamousBPSRDPSMeter-Setup-3.1.193.exe\` (~90MB)
 - 🆕 **Auto-Update:** Automatic update notifications from GitHub\!
 
 **Step 2: Install Npcap (Required)**
