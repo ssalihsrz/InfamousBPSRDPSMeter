@@ -75,7 +75,9 @@ echo ""
 # Step 4: Copy to F:\DPS
 echo "📋 Step 4: Copying installer to F:\DPS..."
 INSTALLER_NAME="InfamousBPSRDPSMeter-Setup-$VERSION.exe"
-BUILD_DIR="/mnt/c/Users/sabir/AppData/Local/Temp/BPSR-Meter-Build/dist_electron"
+# Detect Windows username dynamically
+WIN_USER=$(cmd.exe /c "echo %USERNAME%" 2>/dev/null | tr -d '\r')
+BUILD_DIR="/mnt/c/Users/$WIN_USER/AppData/Local/Temp/BPSR-Meter-Build/dist_electron"
 
 if [ -f "$BUILD_DIR/$INSTALLER_NAME" ]; then
     cp "$BUILD_DIR/$INSTALLER_NAME" "/mnt/f/DPS/$INSTALLER_NAME"
