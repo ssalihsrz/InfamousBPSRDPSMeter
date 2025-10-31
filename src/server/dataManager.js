@@ -1596,6 +1596,22 @@ class UserDataManager {
             });
 
             if (players.length === 0) return; // Don't save empty sessions
+            
+            // CRITICAL v3.1.192: Validate actual combat data before saving
+            // Only save if local player OR top 5 players have meaningful DPS/HPS
+            const hasCombatData = players.some((p, index) => {
+                const isLocalPlayer = p.uid === this.localPlayerUid;
+                const isTopFive = index < 5;
+                const hasDamage = (p.total_damage?.total || 0) > 0;
+                const hasHealing = (p.total_healing?.total || 0) > 0;
+                
+                return (isLocalPlayer || isTopFive) && (hasDamage || hasHealing);
+            });
+            
+            if (!hasCombatData) {
+                this.logger.info('⏭️ Skipping auto-save: No meaningful combat data (no DPS/HPS in local player or top 5)');
+                return;
+            }
 
             // Detect zone/boss context
             const zoneContext = this.detectZoneContext();

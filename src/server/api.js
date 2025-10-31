@@ -721,15 +721,23 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
                 logger.info(`📊 Using live data: ${players.length} players`);
             }
 
-            // Don't save empty or meaningless sessions
-            const totalDamage = players.reduce((sum, p) => sum + ((p.total_damage?.total || 0)), 0);
-            logger.info(`💥 Total damage: ${totalDamage.toLocaleString()}`);
+            // CRITICAL v3.1.192: Validate actual combat data before saving
+            // Only save if local player OR top 5 players have meaningful DPS/HPS
+            const hasCombatData = players.some((p, index) => {
+                const isLocalPlayer = p.uid === localPlayerUid;
+                const isTopFive = index < 5;
+                const hasDamage = (p.total_damage?.total || 0) > 0;
+                const hasHealing = (p.total_healing?.total || 0) > 0;
+                
+                return (isLocalPlayer || isTopFive) && (hasDamage || hasHealing);
+            });
             
-            if (players.length === 0 || totalDamage === 0) {
-                logger.warn(`⚠️ Session save rejected: No combat data (${players.length} players, ${totalDamage} damage)`);
+            if (players.length === 0 || !hasCombatData) {
+                const totalDamage = players.reduce((sum, p) => sum + ((p.total_damage?.total || 0)), 0);
+                logger.warn(`⚠️ Session save rejected: No meaningful combat data (${players.length} players, ${totalDamage} total damage)`);
                 return res.json({
                     code: 1,
-                    msg: 'No combat data to save - players have not dealt any damage yet'
+                    msg: 'No meaningful combat data - local player or top 5 must have DPS/HPS'
                 });
             }
 
@@ -933,27 +941,43 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
                     const data = await fsPromises.readFile(filePath, 'utf8');
                     const session = JSON.parse(data);
 
-                    // Check if name needs updating
-                    if (session.name && (session.name.includes('Previous Battle') || session.name.includes('Auto-saved'))) {
+                    // Check if name needs updating (old formats or inconsistent formats)
+                    const needsUpdate = session.name && (
+                        session.name.includes('Previous Battle') || 
+                        session.name.includes('Auto-saved') ||
+                        session.name.includes('Solo -') ||
+                        session.name.includes('P Party -') ||
+                        session.name.includes('P Raid -') ||
+                        session.name.includes('P Battle -') ||
+                        !session.name.match(/^\d{2}\/\d{2} \d{1,2}:\d{2} (AM|PM) - .+ - .+ \(\d+p\)$/)
+                    );
+                    
+                    if (needsUpdate) {
                         const playerCount = session.players?.length || session.playerCount || 0;
                         const duration = session.duration || 0;
+                        const zoneContext = session.zoneContext || 'Battle';
 
-                        let groupType = '';
-                        if (playerCount === 1) groupType = 'Solo';
-                        else if (playerCount <= 4) groupType = `${playerCount}P Party`;
-                        else if (playerCount <= 8) groupType = `${playerCount}P Raid`;
-                        else groupType = `${playerCount}P Battle`;
+                        // Format: MM/DD H:MM AM - Zone - Xm (Yp)
+                        const date = new Date(session.timestamp);
+                        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                        const day = date.getDate().toString().padStart(2, '0');
+                        const hours = date.getHours();
+                        const minutes = date.getMinutes().toString().padStart(2, '0');
+                        const ampm = hours >= 12 ? 'PM' : 'AM';
+                        const hours12 = hours % 12 || 12;
+                        
+                        const timeStr = `${hours12}:${minutes} ${ampm}`;
+                        const dateStr = `${month}/${day}`;
+                        
+                        // Format duration
+                        const mins = Math.floor(duration / 60);
+                        const secs = duration % 60;
+                        const durationStr = mins === 0 ? `${secs}s` : (mins < 5 ? `${mins}m${secs}s` : `${mins}min`);
 
-                        const minutes = Math.floor(duration / 60);
-                        const seconds = duration % 60;
-                        const durationStr = minutes === 0 ? `${seconds}s` : (minutes < 5 ? `${minutes}m${seconds}s` : `${minutes}min`);
-
-                        const timestamp = new Date(session.timestamp);
-                        const timeStr = timestamp.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
-
-                        session.name = `${groupType} - ${durationStr} [${timeStr}]`;
+                        session.name = `${dateStr} ${timeStr} - ${zoneContext} - ${durationStr} (${playerCount}p)`;
                         await fsPromises.writeFile(filePath, JSON.stringify(session, null, 2));
                         updated++;
+                        logger.info(`✅ Retrofitted: ${session.name}`);
                     }
                 } catch (error) {
                     logger.error(`Failed to retrofit session ${file}:`, error);
