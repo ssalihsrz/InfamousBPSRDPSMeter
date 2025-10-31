@@ -3820,36 +3820,36 @@ window.deleteSession = async function(sessionId) {
 };
 
 // Generate a meaningful session name based on battle data
+// CRITICAL: Must match backend format EXACTLY: MM/DD HH:MM AM/PM - Zone - Duration (Xp)
 function generateSessionName(playerCount, duration) {
     const now = new Date();
-    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+    const day = now.getDate().toString().padStart(2, '0');
+    const hours = now.getHours();
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const hours12 = hours % 12 || 12;
     
-    // Classify by player count
-    let groupType = '';
-    if (playerCount === 1) {
-        groupType = 'Solo';
-    } else if (playerCount <= 4) {
-        groupType = `${playerCount}P Party`;
-    } else if (playerCount <= 8) {
-        groupType = `${playerCount}P Raid`;
-    } else {
-        groupType = `${playerCount}P Battle`;
-    }
+    const timeStr = `${hours12}:${minutes} ${ampm}`;
+    const dateStr = `${month}/${day}`;
     
-    // Classify by duration
+    // Format duration
+    const mins = Math.floor(duration / 60);
+    const secs = duration % 60;
     let durationStr = '';
-    const minutes = Math.floor(duration / 60);
-    const seconds = duration % 60;
-    if (minutes === 0) {
-        durationStr = `${seconds}s`;
-    } else if (minutes < 5) {
-        durationStr = `${minutes}m${seconds}s`;
+    if (mins === 0) {
+        durationStr = `${secs}s`;
+    } else if (mins < 5) {
+        durationStr = `${mins}m${secs}s`;
     } else {
-        durationStr = `${minutes}min`;
+        durationStr = `${mins}min`;
     }
     
-    // Format: "8P Raid - 12min [14:30]"
-    return `${groupType} - ${durationStr} [${timeStr}]`;
+    // Zone context - default to "Battle" for manual saves
+    const zoneName = 'Battle';
+    
+    // STANDARD FORMAT: MM/DD HH:MM AM/PM - Zone - Duration (Xp)
+    return `${dateStr} ${timeStr} - ${zoneName} - ${durationStr} (${playerCount}p)`;
 }
 
 // Auto-save session silently (for zone changes)
@@ -3954,7 +3954,9 @@ async function saveCurrentSession() {
         z-index: 99999;
     `;
     
-    const defaultName = `Session ${new Date().toLocaleString()}`;
+    const duration = STATE.startTime ? Math.floor((Date.now() - STATE.startTime) / 1000) : 0;
+    const playerCount = STATE.players.size;
+    const defaultName = generateSessionName(playerCount, duration);
     
     modal.innerHTML = `
         <div id="save-session-modal" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
