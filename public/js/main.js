@@ -2851,7 +2851,7 @@ async function checkForUpdates() {
         const data = await response.json();
         
         const latestVersion = data.tag_name.replace('v', '');
-        const currentVersion = '4.1.3';
+        const currentVersion = '4.1.4';
         
         if (button) {
             button.innerHTML = '<i class="fa-solid fa-check"></i> Check Complete';
@@ -2893,7 +2893,7 @@ async function checkForUpdates() {
 }
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v4.1.3 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v4.1.4 - Initializing...');
     
     // CRITICAL: Check if this is a popup window
     const isPopup = await checkPopupMode();
@@ -2985,7 +2985,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v4.1.3 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v4.1.4 - Ready!');
 }
 
 // ============================================================================
