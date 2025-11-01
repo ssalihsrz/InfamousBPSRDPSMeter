@@ -806,10 +806,14 @@ class Sniffer {
 
             // Save unknown zones if dirty (debounced)
             if (this.unknownZonesDirty && this.unknownZones.size > 0) {
-                this.saveUnknownZones().catch(err => {
-                    this.logger.error(`Failed to save unknown zones: ${err.message}`);
-                });
-                this.unknownZonesDirty = false;
+                this.saveUnknownZones()
+                    .then(() => {
+                        this.unknownZonesDirty = false; // Only clear after successful save
+                    })
+                    .catch(err => {
+                        this.logger.error(`Failed to save unknown zones: ${err.message}`);
+                        // Don't clear dirty flag on error - will retry next interval
+                    });
             }
 
             // Check for connection timeout with auto-recovery
