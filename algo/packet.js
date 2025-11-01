@@ -261,6 +261,21 @@ class PacketProcessor {
         this.logger = logger;
         this.userDataManager = userDataManager;
         this.mappingManager = mappingManager; // Boss/mob mapping manager
+        
+        // PHASE 3 OPTIMIZATION: Packet frequency tracking
+        this.packetStats = {
+            SyncNearDeltaInfo: { count: 0, lastProcessed: 0 },      // High frequency
+            SyncContainerDirtyData: { count: 0, lastProcessed: 0 }, // Medium frequency
+            SyncNearEntities: { count: 0, lastProcessed: 0 },       // Low frequency
+            SyncContainerData: { count: 0, lastProcessed: 0 },      // Rare
+            SyncToMeDeltaInfo: { count: 0, lastProcessed: 0 }       // Rare
+        };
+        
+        // Throttle intervals (ms) - don't process rare packets too frequently
+        this.throttleIntervals = {
+            SyncNearEntities: 1000,      // Max once per second
+            SyncContainerData: 5000      // Max once per 5 seconds
+        };
     }
 
     _decompressPayload(buffer) {
@@ -269,6 +284,14 @@ class PacketProcessor {
             return;
         }
         return zlib.zstdDecompressSync(buffer);
+    }
+    
+    // PHASE 3 OPTIMIZATION: Log packet statistics (for debugging/monitoring)
+    logPacketStats() {
+        const stats = Object.entries(this.packetStats).map(([name, data]) => {
+            return `${name}: ${data.count} packets`;
+        }).join(', ');
+        this.logger.debug(`📊 Packet Stats: ${stats}`);
     }
 
     _processAoiSyncDelta(aoiSyncDelta) {
@@ -533,7 +556,7 @@ class PacketProcessor {
                 fs.writeFileSync(debugFile, payloadBuffer);
                 this.logger.warn(`Failed to decode SyncContainerData, skipping. Debug data saved to: ${debugFile}`);
             } catch (writeErr) {
-                this.logger.warn(`Failed to decode SyncContainerData, skipping. Error: ${err.message}`);
+                this.logger.warn(`Failed to decode SyncContainerData, skipping. Decode error: ${err.message}, Write error: ${writeErr.message}`);
             }
             // Don't throw - continue processing other packets in batch
         }
@@ -803,22 +826,38 @@ class PacketProcessor {
             msgPayload = this._decompressPayload(msgPayload);
         }
 
+        // PHASE 3 OPTIMIZATION: Throttle rare packets
+        const now = Date.now();
+        
         switch (methodId) {
             case NotifyMethod.SyncNearEntities:
-                this._processSyncNearEntities(msgPayload);
+                this.packetStats.SyncNearEntities.count++;
+                // Throttle: Only process once per second
+                if (now - this.packetStats.SyncNearEntities.lastProcessed >= this.throttleIntervals.SyncNearEntities) {
+                    this._processSyncNearEntities(msgPayload);
+                    this.packetStats.SyncNearEntities.lastProcessed = now;
+                }
                 break;
             case NotifyMethod.SyncContainerData:
-                this._processSyncContainerData(msgPayload);
+                this.packetStats.SyncContainerData.count++;
+                // Throttle: Only process once per 5 seconds
+                if (now - this.packetStats.SyncContainerData.lastProcessed >= this.throttleIntervals.SyncContainerData) {
+                    this._processSyncContainerData(msgPayload);
+                    this.packetStats.SyncContainerData.lastProcessed = now;
+                }
                 break;
             case NotifyMethod.SyncContainerDirtyData:
+                this.packetStats.SyncContainerDirtyData.count++;
                 this._processSyncContainerDirtyData(msgPayload);
                 break;
             case NotifyMethod.SyncToMeDeltaInfo:
+                this.packetStats.SyncToMeDeltaInfo.count++;
                 this._processSyncToMeDeltaInfo(msgPayload).catch(err => {
                     this.logger.error('Error processing SyncToMeDeltaInfo:', err);
                 });
                 break;
             case NotifyMethod.SyncNearDeltaInfo:
+                this.packetStats.SyncNearDeltaInfo.count++;
                 this._processSyncNearDeltaInfo(msgPayload);
                 break;
             default:
