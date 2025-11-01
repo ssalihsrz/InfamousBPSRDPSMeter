@@ -300,6 +300,9 @@ class UserData {
         
         // PERFORMANCE: Only track detailed skills for top players
         this.trackSkills = false; // Will be enabled for top 30 players
+        
+        // Combat activity tracking - when this player last dealt damage/healing
+        this.lastCombatActivity = 0; // Timestamp of last combat action
     }
 
     /** 添加伤害记录
@@ -312,6 +315,9 @@ class UserData {
      * @param {number} hpLessenValue - 生命值减少量
      */
     addDamage(skillId, element, damage, isCrit, isLucky, isCauseLucky, hpLessenValue = 0) {
+        // Update combat activity timestamp
+        this.lastCombatActivity = Date.now();
+        
         // Always track total damage stats
         this.damageStats.addRecord(damage, isCrit, isLucky, hpLessenValue);
         
@@ -346,6 +352,9 @@ class UserData {
      * @param {boolean} isDeathPrevented - 是否拯救了低血量玩家
      */
     addHealing(skillId, element, healing, isCrit, isLucky, isCauseLucky, targetUid, effectiveHealing, overheal, isDeathPrevented) {
+        // Update combat activity timestamp
+        this.lastCombatActivity = Date.now();
+        
         // Always track total healing stats
         this.healingStats.addRecord(healing, isCrit, isLucky, 0, effectiveHealing, overheal, isDeathPrevented);
         
@@ -703,6 +712,7 @@ class UserDataManager {
         this.playerMapPath = path.join(userDataPath, 'player_map.json');
         this.currentZone = null;
         this.currentZoneId = null;
+        this.currentZoneType = 'unknown'; // Zone type: town/field/dungeon/raid/pvp/unknown
         this.currentBoss = null; // Current boss being fought
         this.currentBossCategory = null; // Boss category (raid/dungeon/field)
         this.zoneChanged = false;
@@ -1242,16 +1252,33 @@ class UserDataManager {
         };
     }
 
-    /** Get all users data */
+    /** Get all users data with zone-aware filtering */
     getAllUsersData() {
         const result = {};
+        const now = Date.now();
+        const COMBAT_ACTIVITY_WINDOW = 10000; // 10 seconds
+        
+        // In dungeons/raids, show all players
+        // In field/town, only show players active in last 10 seconds
+        const isInstanceContent = (this.currentZoneType === 'dungeon' || this.currentZoneType === 'raid');
+        
         for (const [uid, user] of this.users.entries()) {
-            const summary = user.getSummary();
-            summary.isPartyMember = this.isPartyMember(uid);
-            summary.raidGroup = this.getRaidGroup(uid);
-            summary.isLocalPlayer = (uid === this.localPlayerUid);
-            summary.damagePercent = this.calculateDamagePercent(uid);
-            result[uid] = summary;
+            // Check combat activity
+            const timeSinceActivity = now - user.lastCombatActivity;
+            const isRecentlyActive = timeSinceActivity <= COMBAT_ACTIVITY_WINDOW;
+            const isImportant = (uid === this.localPlayerUid) || this.isPartyMember(uid);
+            
+            // Filter logic:
+            // - Instance content (dungeon/raid): show all players
+            // - Field/town: only show recently active OR important players
+            if (isInstanceContent || isRecentlyActive || isImportant) {
+                const summary = user.getSummary();
+                summary.isPartyMember = this.isPartyMember(uid);
+                summary.raidGroup = this.getRaidGroup(uid);
+                summary.isLocalPlayer = (uid === this.localPlayerUid);
+                summary.damagePercent = this.calculateDamagePercent(uid);
+                result[uid] = summary;
+            }
         }
         return result;
     }
@@ -1262,22 +1289,35 @@ class UserDataManager {
      */
     getActiveUsersData(limit = 20) {
         const allUsers = [];
+        const now = Date.now();
+        const COMBAT_ACTIVITY_WINDOW = 10000; // 10 seconds
+        
+        // In dungeons/raids, show all players
+        // In field/town, only show players active in last 10 seconds
+        const isInstanceContent = (this.currentZoneType === 'dungeon' || this.currentZoneType === 'raid');
         
         // Collect all users with their data
         for (const [uid, user] of this.users.entries()) {
-            const summary = user.getSummary();
-            summary.uid = uid;
-            summary.isPartyMember = this.isPartyMember(uid);
-            summary.raidGroup = this.getRaidGroup(uid);
-            summary.isLocalPlayer = (uid === this.localPlayerUid);
-            summary.damagePercent = this.calculateDamagePercent(uid);
+            // Check combat activity
+            const timeSinceActivity = now - user.lastCombatActivity;
+            const isRecentlyActive = timeSinceActivity <= COMBAT_ACTIVITY_WINDOW;
+            const hasCombatData = (user.damageStats.stats.total || 0) > 0 || (user.healingStats.stats.total || 0) > 0;
+            const isImportant = (uid === this.localPlayerUid) || this.isPartyMember(uid);
             
-            // CRITICAL: Only send players with actual combat data OR local/party
-            // This prevents UI clutter from nearby players who haven't started combat
-            const hasCombatData = (summary.total_damage?.total || 0) > 0 || (summary.total_healing?.total || 0) > 0;
-            const isImportant = summary.isLocalPlayer || summary.isPartyMember;
+            // Filter logic:
+            // - Instance content (dungeon/raid): show all players with combat data
+            // - Field/town: only show recently active OR important players
+            const shouldInclude = isInstanceContent 
+                ? (hasCombatData || isImportant)
+                : (isRecentlyActive || isImportant);
             
-            if (hasCombatData || isImportant) {
+            if (shouldInclude) {
+                const summary = user.getSummary();
+                summary.uid = uid;
+                summary.isPartyMember = this.isPartyMember(uid);
+                summary.raidGroup = this.getRaidGroup(uid);
+                summary.isLocalPlayer = (uid === this.localPlayerUid);
+                summary.damagePercent = this.calculateDamagePercent(uid);
                 allUsers.push(summary);
             }
         }
@@ -1439,10 +1479,11 @@ class UserDataManager {
     }
 
     /** Set current zone for session naming */
-    setCurrentZone(zoneName, zoneId) {
+    setCurrentZone(zoneName, zoneId, zoneType = 'unknown') {
         this.currentZone = zoneName;
         this.currentZoneId = zoneId;
-        this.logger.info(`📍 Zone changed to: ${zoneName}${zoneId ? ` (ID: ${zoneId})` : ''}`);
+        this.currentZoneType = zoneType;
+        this.logger.info(`📍 Zone changed to: ${zoneName}${zoneId ? ` (ID: ${zoneId})` : ''} [${zoneType}]`);
     }
 
     /** Get current zone name for display */

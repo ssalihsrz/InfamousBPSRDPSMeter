@@ -577,7 +577,7 @@ class Sniffer {
                                         this.currentZone = zoneName;
                                         this.currentZoneId = zoneId;
                                         this.currentZoneType = zoneType; // NEW: Store zone type
-                                        this.userDataManager.setCurrentZone(zoneName, zoneId);
+                                        this.userDataManager.setCurrentZone(zoneName, zoneId, zoneType);
                                         
                                         // Clear boss tracking on zone change
                                         this.clearBossTracking();
