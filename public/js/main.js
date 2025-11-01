@@ -1,4 +1,4 @@
-// BPSR Meter v4.0.4 - Performance-Focused Implementation
+// BPSR Meter v4.0.5 - Performance-Focused Implementation
 // Optimized for robustness, usability, and smooth performance
 
 'use strict';
@@ -135,7 +135,7 @@ const SETTINGS = {
     rememberNames: true,
     autoClearOnZoneChange: true, // Clear data when entering combat after zone change
     keepDataAfterDungeon: true, // Don't clear immediately on zone exit
-    autoSaveSessions: true, // Auto-save sessions on zone/dungeon/boss end (NEW v4.0.4)
+    autoSaveSessions: true, // Auto-save sessions on zone/dungeon/boss end (NEW v4.0.5)
     overlayOpacity: 0.95, // PHASE 3: Overlay transparency (0.0-1.0)
     compactMode: false, // Persist compact vs full mode
     compactHealerMode: false, // Show healing metrics in compact mode
@@ -1043,7 +1043,7 @@ function renderPlayers() {
         const localPlayer = sorted.find(p => p.isLocalPlayer || p.uid === STATE.localPlayerUid);
         const otherPlayers = sorted.filter(p => !(p.isLocalPlayer || p.uid === STATE.localPlayerUid));
         
-        // CRITICAL v4.0.4: Respect showingAllPlayers in compact mode
+        // CRITICAL v4.0.5: Respect showingAllPlayers in compact mode
         const compactLimit = STATE.showingAllPlayers ? 19 : 5; // 20 total when expanded (local + 19), 6 when collapsed (local + 5)
         
         if (localPlayer) {
@@ -1238,7 +1238,7 @@ function renderPlayers() {
         });
     });
     
-    // CRITICAL v4.0.4: Restore cached skills for ALL currently expanded players
+    // CRITICAL v4.0.5: Restore cached skills for ALL currently expanded players
     // This prevents "Loading..." from persisting when switching between players
     requestAnimationFrame(() => {
         expandedPlayerIds.forEach(uid => {
@@ -1891,7 +1891,7 @@ function setupEventListeners() {
             e.preventDefault();
             e.stopPropagation();
             
-            // CRITICAL: Use popup window if available (v4.0.4+)
+            // CRITICAL: Use popup window if available (v4.0.5+)
             if (window.electronAPI?.openSettingsWindow) {
                 window.electronAPI.openSettingsWindow();
                 return; // Exit - popup window handles it
@@ -2355,7 +2355,7 @@ function setupEventListeners() {
         nameInput.value = '';
     });
     
-    // Check for Updates button (General tab) - v4.0.4
+    // Check for Updates button (General tab) - v4.0.5
     const checkUpdatesBtn = document.getElementById('btn-check-updates-general');
     if (checkUpdatesBtn) {
         checkUpdatesBtn.addEventListener('click', async () => {
@@ -2816,7 +2816,7 @@ async function checkForUpdates() {
         const data = await response.json();
         
         const latestVersion = data.tag_name.replace('v', '');
-        const currentVersion = '4.0.4';
+        const currentVersion = '4.0.5';
         
         if (button) {
             button.innerHTML = '<i class="fa-solid fa-check"></i> Check Complete';
@@ -2858,7 +2858,7 @@ async function checkForUpdates() {
 }
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v4.0.4 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v4.0.5 - Initializing...');
     
     // CRITICAL: Check if this is a popup window
     const isPopup = await checkPopupMode();
@@ -2950,7 +2950,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v4.0.4 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v4.0.5 - Ready!');
 }
 
 // ============================================================================
@@ -3856,7 +3856,7 @@ function generateSessionName(playerCount, duration) {
 
 // Auto-save session silently (for zone changes)
 async function autoSaveSession(sessionName) {
-    // Check if auto-save is enabled (v4.0.4)
+    // Check if auto-save is enabled (v4.0.5)
     if (!SETTINGS.autoSaveSessions) {
         console.log('ℹ️ Auto-save disabled - skipping session save');
         return;
@@ -4152,7 +4152,7 @@ function initializeSessionManagement() {
         });
     }
     
-    // CRITICAL v4.0.4: Listen for session changes from Session Manager popup
+    // CRITICAL v4.0.5: Listen for session changes from Session Manager popup
     // Refreshes dropdown after retrofit or delete operations
     if (window.electronAPI?.onSessionsChanged) {
         window.electronAPI.onSessionsChanged(() => {
@@ -4167,7 +4167,7 @@ function initializeSessionManagement() {
         saveBtn.addEventListener('click', saveCurrentSession);
     }
     
-    // Auto-save sessions toggle (v4.0.4)
+    // Auto-save sessions toggle (v4.0.5)
     const autoSaveToggle = document.getElementById('toggle-auto-save-sessions');
     if (autoSaveToggle) {
         // Set initial state from settings
