@@ -413,7 +413,7 @@ async function checkForUpdates() {
         const data = await response.json();
         
         const latestVersion = data.tag_name.replace('v', '');
-        const currentVersion = '3.1.195';
+        const currentVersion = '3.1.196';
         
         if (button) {
             button.innerHTML = '<i class="fa-solid fa-check"></i> Check Complete';
