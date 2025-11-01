@@ -9,10 +9,12 @@ echo " BPSR Meter v2.8.0 - WSL to Windows Build"
 echo "========================================================"
 echo ""
 echo "This script will:"
-echo "1. Copy source to Windows temp directory"
-echo "2. Install dependencies on Windows"
-echo "3. Build Windows installer"
-echo "4. Copy installer back to WSL"
+echo "1. Check version string consistency"
+echo "2. Clean previous build"
+echo "3. Copy source to Windows temp directory"
+echo "4. Install dependencies on Windows"
+echo "5. Build Windows installer"
+echo "6. Copy installer back to WSL"
 echo ""
 
 # Check if running in WSL
@@ -36,16 +38,28 @@ WSL_SOURCE="/development/BPSR-Meter"
 WIN_TEMP="/mnt/c/Users/$WIN_USER/AppData/Local/Temp/BPSR-Meter-Build"
 WIN_TEMP_WIN="C:\\Users\\$WIN_USER\\AppData\\Local\\Temp\\BPSR-Meter-Build"
 
-echo "[1/5] Cleaning previous build..."
+echo "[1/6] Checking version consistency..."
+cd "$WSL_SOURCE"
+bash scripts/check-version-consistency.sh
+if [ $? -ne 0 ]; then
+    echo ""
+    echo "❌ BUILD ABORTED: Fix version inconsistencies first!"
+    echo "   See: .windsurf/workflows/version-bump.md"
+    exit 1
+fi
+echo "✓ All version strings consistent"
+echo ""
+
+echo "[2/6] Cleaning previous build..."
 rm -rf "$WIN_TEMP"
 mkdir -p "$WIN_TEMP"
 
-echo "[2/5] Copying source to Windows..."
+echo "[3/6] Copying source to Windows..."
 rsync -a --exclude='node_modules' --exclude='dist_electron' --exclude='dist' --exclude='.git' "$WSL_SOURCE/" "$WIN_TEMP/"
 echo "✓ Source copied"
 echo ""
 
-echo "[3/5] Installing dependencies on Windows..."
+echo "[4/6] Installing dependencies on Windows..."
 cd "$WIN_TEMP"
 cmd.exe /c "cd $WIN_TEMP_WIN && pnpm install"
 if [ $? -ne 0 ]; then
@@ -55,7 +69,7 @@ fi
 echo "✓ Dependencies installed"
 echo ""
 
-echo "[4/5] Building Windows installer..."
+echo "[5/6] Building Windows installer..."
 cmd.exe /c "cd $WIN_TEMP_WIN && pnpm dist"
 if [ $? -ne 0 ]; then
     echo "[ERROR] Build failed"
@@ -64,7 +78,7 @@ fi
 echo "✓ Build completed"
 echo ""
 
-echo "[5/5] Copying installer..."
+echo "[6/6] Copying installer..."
 # Find installer dynamically (version-independent, no spaces in filename)
 INSTALLER=$(find "$WIN_TEMP/dist_electron" -name "InfamousBPSRDPSMeter-Setup-*.exe" -type f | head -n 1)
 if [ -f "$INSTALLER" ]; then
