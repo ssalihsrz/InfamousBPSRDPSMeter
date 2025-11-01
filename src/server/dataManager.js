@@ -1266,15 +1266,24 @@ class UserDataManager {
         const isInstanceContent = (this.currentZoneType === 'dungeon' || this.currentZoneType === 'raid');
         
         for (const [uid, user] of this.users.entries()) {
-            // Check combat activity
-            const timeSinceActivity = now - user.lastCombatActivity;
-            const isRecentlyActive = timeSinceActivity <= COMBAT_ACTIVITY_WINDOW;
+            // Check if player has combat data
+            const hasCombatData = (user.damageStats.stats.total || 0) > 0 || (user.healingStats.stats.total || 0) > 0;
+            
+            // Check combat activity (only if they've been in combat before)
+            const hasBeenInCombat = user.lastCombatActivity > 0;
+            const timeSinceActivity = hasBeenInCombat ? (now - user.lastCombatActivity) : 0;
+            const isRecentlyActive = hasBeenInCombat ? (timeSinceActivity <= COMBAT_ACTIVITY_WINDOW) : hasCombatData;
+            
             const isImportant = (uid === this.localPlayerUid) || this.isPartyMember(uid);
             
             // Filter logic:
-            // - Instance content (dungeon/raid): show all players
+            // - Instance content (dungeon/raid): show all players with combat data
             // - Field/town: only show recently active OR important players
-            if (isInstanceContent || isRecentlyActive || isImportant) {
+            const shouldShow = isInstanceContent 
+                ? (hasCombatData || isImportant)
+                : (isRecentlyActive || isImportant);
+            
+            if (shouldShow) {
                 const summary = user.getSummary();
                 summary.isPartyMember = this.isPartyMember(uid);
                 summary.raidGroup = this.getRaidGroup(uid);
@@ -1301,10 +1310,14 @@ class UserDataManager {
         
         // Collect all users with their data
         for (const [uid, user] of this.users.entries()) {
-            // Check combat activity
-            const timeSinceActivity = now - user.lastCombatActivity;
-            const isRecentlyActive = timeSinceActivity <= COMBAT_ACTIVITY_WINDOW;
+            // Check if player has combat data
             const hasCombatData = (user.damageStats.stats.total || 0) > 0 || (user.healingStats.stats.total || 0) > 0;
+            
+            // Check combat activity (only if they've been in combat before)
+            const hasBeenInCombat = user.lastCombatActivity > 0;
+            const timeSinceActivity = hasBeenInCombat ? (now - user.lastCombatActivity) : 0;
+            const isRecentlyActive = hasBeenInCombat ? (timeSinceActivity <= COMBAT_ACTIVITY_WINDOW) : hasCombatData;
+            
             const isImportant = (uid === this.localPlayerUid) || this.isPartyMember(uid);
             
             // Filter logic:
