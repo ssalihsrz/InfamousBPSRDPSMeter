@@ -17,8 +17,10 @@
 
 ## 📋 Latest Release: v4.0.5
 
-### 🐛 Critical Fix
-- **Names Not Showing After Zone Change** - Player names now properly preserved during zone/channel changes (fixed double-reset pattern)
+### ⚡ Performance Improvements
+- **Packet Processing Optimization** - Reduced CPU usage during high-action combat
+- **Local Player Detection** - Immediate detection on login, no waiting for combat
+- **Error Handling** - More resilient to malformed packets
 
 [📥 Download v4.0.5](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)
 
