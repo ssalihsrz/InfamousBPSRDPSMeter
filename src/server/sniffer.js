@@ -305,22 +305,39 @@ class Sniffer {
                 category: category || 'unknown',
                 firstSeen: now,
                 lastSeen: now,
-                uid: targetUid
+                uid: targetUid,
+                playerCount: 0,
+                isConfirmedBoss: false
             });
             
-            this.logger.info(`👹 BOSS DETECTED: ${bossName} (${category || 'unknown'})`);
+            this.logger.info(`👹 Potential boss detected: ${bossName} (${category || 'unknown'}) - validating...`);
         } else {
             // Update last seen time
             const encounter = this.bossEncounters.get(uidStr);
             encounter.lastSeen = now;
         }
         
-        // Update current boss if different or first time
-        if (this.currentBossId !== targetUid) {
+        // Validate if this is actually a boss fight (not just a regular mob)
+        const encounter = this.bossEncounters.get(uidStr);
+        const activePlayers = this.userDataManager.users.size;
+        
+        // Boss validation criteria:
+        // 1. At least 5 active players in combat, OR
+        // 2. Encounter has lasted at least 30 seconds with 3+ players
+        const duration = now - encounter.firstSeen;
+        const isLikelyBoss = (activePlayers >= 5) || (duration >= 30000 && activePlayers >= 3);
+        
+        if (isLikelyBoss && !encounter.isConfirmedBoss) {
+            encounter.isConfirmedBoss = true;
+            this.logger.info(`✅ Boss confirmed: ${bossName} (${activePlayers} players, ${Math.floor(duration/1000)}s duration)`);
+        }
+        
+        // Update current boss if confirmed and different
+        if (encounter.isConfirmedBoss && this.currentBossId !== targetUid) {
             const category = this.getBossCategory(bossName);
             this.currentBoss = bossName;
             this.currentBossId = targetUid;
-            this.bossFirstSeen = this.bossEncounters.get(uidStr).firstSeen;
+            this.bossFirstSeen = encounter.firstSeen;
             
             // Note: Zone type is determined by zone name, not boss category
             // Bosses can appear in field, dungeon, or raid zones

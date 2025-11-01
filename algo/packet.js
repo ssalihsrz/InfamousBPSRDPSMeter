@@ -543,8 +543,12 @@ class PacketProcessor {
 
             // CRITICAL: Always capture Gear Score when available (FightPoint)
             if (charBase.FightPoint) {
+                const gsUser = this.userDataManager.getUser(playerUid);
+                // Only log if GS changed (avoid spam)
+                if (gsUser && gsUser.fightPoint !== charBase.FightPoint) {
+                    this.logger.info(`📊 PACKET: GS captured for UID ${playerUid} → ${charBase.FightPoint}`);
+                }
                 this.userDataManager.setFightPoint(playerUid, charBase.FightPoint);
-                this.logger.info(`📊 PACKET: GS captured for UID ${playerUid} → ${charBase.FightPoint}`);
             }
 
             if (!vData.ProfessionList) return;
@@ -596,9 +600,13 @@ class PacketProcessor {
                         const fightPoint = messageReader.readUInt32LE();
                         messageReader.readInt32();
                         const localUid = currentUserUuid.shiftRight(16).toNumber();
-                        const localName = this.userDataManager.getUser(localUid)?.name || 'Unknown';
-                        this.logger.info(`📊 GS CAPTURED via SyncContainerDirtyData field 35: 👤 LOCAL PLAYER - ${localName} (UID ${localUid}) → ${fightPoint}`);
-                        console.log(`🏅 GS: 👤 LOCAL PLAYER ${localName} (${localUid}) = ${fightPoint}`);
+                        const localUser = this.userDataManager.getUser(localUid);
+                        // Only log if GS changed (avoid spam)
+                        if (localUser && localUser.fightPoint !== fightPoint) {
+                            const localName = localUser.name || 'Unknown';
+                            this.logger.info(`📊 GS CAPTURED via SyncContainerDirtyData field 35: 👤 LOCAL PLAYER - ${localName} (UID ${localUid}) → ${fightPoint}`);
+                            console.log(`🏅 GS: 👤 LOCAL PLAYER ${localName} (${localUid}) = ${fightPoint}`);
+                        }
                         this.userDataManager.setFightPoint(localUid, fightPoint);
                         break;
                     default:
@@ -670,11 +678,15 @@ class PacketProcessor {
                     break;
                 case AttrType.AttrFightPoint:
                     const playerFightPoint = reader.int32();
-                    const gsPlayerName = this.userDataManager.getUser(playerUid)?.name || 'Unknown';
-                    const isLocalPlayer = (playerUid === (currentUserUuid.shiftRight(16).toNumber()));
-                    const playerType = isLocalPlayer ? '👤 LOCAL PLAYER' : '👥 OTHER PLAYER';
-                    this.logger.info(`📊 GS CAPTURED via AttrFightPoint: ${playerType} - ${gsPlayerName} (UID ${playerUid}) → ${playerFightPoint}`);
-                    console.log(`🏅 GS: ${playerType} ${gsPlayerName} (${playerUid}) = ${playerFightPoint}`);
+                    const gsUser = this.userDataManager.getUser(playerUid);
+                    // Only log if GS changed (avoid spam)
+                    if (gsUser && gsUser.fightPoint !== playerFightPoint) {
+                        const gsPlayerName = gsUser.name || 'Unknown';
+                        const isLocalPlayer = (playerUid === (currentUserUuid.shiftRight(16).toNumber()));
+                        const playerType = isLocalPlayer ? '👤 LOCAL PLAYER' : '👥 OTHER PLAYER';
+                        this.logger.info(`📊 GS CAPTURED via AttrFightPoint: ${playerType} - ${gsPlayerName} (UID ${playerUid}) → ${playerFightPoint}`);
+                        console.log(`🏅 GS: ${playerType} ${gsPlayerName} (${playerUid}) = ${playerFightPoint}`);
+                    }
                     this.userDataManager.setFightPoint(playerUid, playerFightPoint);
                     break;
                 case AttrType.AttrLevel:
