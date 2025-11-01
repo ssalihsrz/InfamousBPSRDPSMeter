@@ -920,15 +920,21 @@ class UserDataManager {
         if (this.waitingForNewCombat) {
             console.log('🔄 First damage detected! Resetting meter for fresh tracking...');
             
-            // CRITICAL v3.1.196: Preserve names from BOTH sources
+            // CRITICAL v4.0.5: Preserve names AND GS from BOTH sources
             // 1. this.users (active users with combat data)
-            // 2. this.playerMap (captured names from packets, may not have combat data yet)
+            // 2. this.playerMap (captured names from packets during zone change)
             const capturedNames = new Map();
+            const capturedGS = new Map(); // NEW: Also preserve GS
             
             // Source 1: Active users
             for (const [userUid, user] of this.users.entries()) {
+                const uidStr = String(userUid);
                 if (user.name && !user.name.startsWith('Unknown_')) {
-                    capturedNames.set(String(userUid), user.name);
+                    capturedNames.set(uidStr, user.name);
+                }
+                // NEW: Preserve GS if available
+                if (user.fightPoint && user.fightPoint > 0) {
+                    capturedGS.set(uidStr, user.fightPoint);
                 }
             }
             
@@ -939,8 +945,15 @@ class UserDataManager {
                 }
             }
             
-            if (capturedNames.size > 0) {
-                console.log(`📝 Preserving ${capturedNames.size} captured names before reset (${this.users.size} from users, ${this.playerMap.size} from cache)`);
+            if (capturedNames.size > 0 || capturedGS.size > 0) {
+                console.log(`📝 Preserving before reset: ${capturedNames.size} names, ${capturedGS.size} GS values`);
+            }
+            
+            // NEW: Store GS in userCache so it persists during reset
+            for (const [uidStr, gs] of capturedGS.entries()) {
+                let cached = this.userCache.get(uidStr) || {};
+                cached.fightPoint = gs;
+                this.userCache.set(uidStr, cached);
             }
             
             // Clear synchronously to avoid race condition - don't await async clearAll
@@ -980,15 +993,21 @@ class UserDataManager {
         if (this.waitingForNewCombat) {
             console.log('🔄 First healing detected! Resetting meter for fresh tracking...');
             
-            // CRITICAL v3.1.196: Preserve names from BOTH sources
+            // CRITICAL v4.0.5: Preserve names AND GS from BOTH sources
             // 1. this.users (active users with combat data)
-            // 2. this.playerMap (captured names from packets, may not have combat data yet)
+            // 2. this.playerMap (captured names from packets during zone change)
             const capturedNames = new Map();
+            const capturedGS = new Map(); // NEW: Also preserve GS
             
             // Source 1: Active users
             for (const [userUid, user] of this.users.entries()) {
+                const uidStr = String(userUid);
                 if (user.name && !user.name.startsWith('Unknown_')) {
-                    capturedNames.set(String(userUid), user.name);
+                    capturedNames.set(uidStr, user.name);
+                }
+                // NEW: Preserve GS if available
+                if (user.fightPoint && user.fightPoint > 0) {
+                    capturedGS.set(uidStr, user.fightPoint);
                 }
             }
             
@@ -999,8 +1018,15 @@ class UserDataManager {
                 }
             }
             
-            if (capturedNames.size > 0) {
-                console.log(`📝 Preserving ${capturedNames.size} captured names before reset (${this.users.size} from users, ${this.playerMap.size} from cache)`);
+            if (capturedNames.size > 0 || capturedGS.size > 0) {
+                console.log(`📝 Preserving before reset: ${capturedNames.size} names, ${capturedGS.size} GS values`);
+            }
+            
+            // NEW: Store GS in userCache so it persists during reset
+            for (const [uidStr, gs] of capturedGS.entries()) {
+                let cached = this.userCache.get(uidStr) || {};
+                cached.fightPoint = gs;
+                this.userCache.set(uidStr, cached);
             }
             
             // Clear synchronously to avoid race condition - don't await async clearAll
