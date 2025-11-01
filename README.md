@@ -17,10 +17,12 @@
 
 ## 📋 Latest Release: v4.0.6
 
+### 🐛 Critical Fix
+- **GS Not Showing After Zone Change** - Gear Score now preserved during meter resets
+
 ### ⚡ Performance Improvements
-- **Packet Processing Optimization** - Reduced CPU usage during high-action combat
-- **Local Player Detection** - Immediate detection on login, no waiting for combat
-- **Error Handling** - More resilient to malformed packets
+- Reduced CPU usage during combat
+- Immediate local player detection
 
 [📥 Download v4.0.6](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)
 
