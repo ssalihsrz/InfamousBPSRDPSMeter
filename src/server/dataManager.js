@@ -920,27 +920,34 @@ class UserDataManager {
         if (this.waitingForNewCombat) {
             console.log('🔄 First damage detected! Resetting meter for fresh tracking...');
             
-            // CRITICAL: Preserve captured names before clearing!
-            // Name packets may have arrived before damage packets
+            // CRITICAL v3.1.196: Preserve names from BOTH sources
+            // 1. this.users (active users with combat data)
+            // 2. this.playerMap (captured names from packets, may not have combat data yet)
             const capturedNames = new Map();
+            
+            // Source 1: Active users
             for (const [userUid, user] of this.users.entries()) {
                 if (user.name && !user.name.startsWith('Unknown_')) {
-                    capturedNames.set(userUid, user.name);
+                    capturedNames.set(String(userUid), user.name);
+                }
+            }
+            
+            // Source 2: playerMap (names captured from packets during zone change)
+            for (const [uidStr, name] of this.playerMap.entries()) {
+                if (name && !name.startsWith('Unknown_') && !capturedNames.has(uidStr)) {
+                    capturedNames.set(uidStr, name);
                 }
             }
             
             if (capturedNames.size > 0) {
-                console.log(`📝 Preserving ${capturedNames.size} captured names before reset`);
+                console.log(`📝 Preserving ${capturedNames.size} captured names before reset (${this.users.size} from users, ${this.playerMap.size} from cache)`);
             }
             
             // Clear synchronously to avoid race condition - don't await async clearAll
             this.users = new Map();
             
-            // Restore captured names
-            for (const [userUid, name] of capturedNames.entries()) {
-                const user = this.getUser(userUid);
-                user.setName(name);
-            }
+            // Restore ALL captured names (they'll be loaded when users are created)
+            // No need to manually restore - getUser() will load from playerMap automatically
             
             this.startTime = Date.now();
             this.lastAutoSaveTime = 0;
@@ -973,27 +980,34 @@ class UserDataManager {
         if (this.waitingForNewCombat) {
             console.log('🔄 First healing detected! Resetting meter for fresh tracking...');
             
-            // CRITICAL: Preserve captured names before clearing!
-            // Name packets may have arrived before healing packets
+            // CRITICAL v3.1.196: Preserve names from BOTH sources
+            // 1. this.users (active users with combat data)
+            // 2. this.playerMap (captured names from packets, may not have combat data yet)
             const capturedNames = new Map();
+            
+            // Source 1: Active users
             for (const [userUid, user] of this.users.entries()) {
                 if (user.name && !user.name.startsWith('Unknown_')) {
-                    capturedNames.set(userUid, user.name);
+                    capturedNames.set(String(userUid), user.name);
+                }
+            }
+            
+            // Source 2: playerMap (names captured from packets during zone change)
+            for (const [uidStr, name] of this.playerMap.entries()) {
+                if (name && !name.startsWith('Unknown_') && !capturedNames.has(uidStr)) {
+                    capturedNames.set(uidStr, name);
                 }
             }
             
             if (capturedNames.size > 0) {
-                console.log(`📝 Preserving ${capturedNames.size} captured names before reset`);
+                console.log(`📝 Preserving ${capturedNames.size} captured names before reset (${this.users.size} from users, ${this.playerMap.size} from cache)`);
             }
             
             // Clear synchronously to avoid race condition - don't await async clearAll
             this.users = new Map();
             
-            // Restore captured names
-            for (const [userUid, name] of capturedNames.entries()) {
-                const user = this.getUser(userUid);
-                user.setName(name);
-            }
+            // Restore ALL captured names (they'll be loaded when users are created)
+            // No need to manually restore - getUser() will load from playerMap automatically
             
             this.startTime = Date.now();
             this.lastAutoSaveTime = 0;
