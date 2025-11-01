@@ -1277,10 +1277,10 @@ class UserDataManager {
             const isImportant = (uid === this.localPlayerUid) || this.isPartyMember(uid);
             
             // Filter logic:
-            // - Instance content (dungeon/raid): show all players with combat data
+            // - Instance content (dungeon/raid): show ALL players (no filtering)
             // - Field/town: only show recently active OR important players
             const shouldShow = isInstanceContent 
-                ? (hasCombatData || isImportant)
+                ? true  // Show everyone in dungeons/raids
                 : (isRecentlyActive || isImportant);
             
             if (shouldShow) {
@@ -1321,10 +1321,10 @@ class UserDataManager {
             const isImportant = (uid === this.localPlayerUid) || this.isPartyMember(uid);
             
             // Filter logic:
-            // - Instance content (dungeon/raid): show all players with combat data
+            // - Instance content (dungeon/raid): show ALL players (no filtering)
             // - Field/town: only show recently active OR important players
             const shouldInclude = isInstanceContent 
-                ? (hasCombatData || isImportant)
+                ? true  // Show everyone in dungeons/raids
                 : (isRecentlyActive || isImportant);
             
             if (shouldInclude) {
