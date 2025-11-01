@@ -83,7 +83,7 @@
     "10901": "Silver Nappo"
   },
   "bossCategories": {
-    "raid": [
+    "field_raid": [
       "Frost Ogre",
       "Tempest Ogre",
       "Inferno Ogre",
@@ -98,9 +98,7 @@
       "Muku Chief",
       "Lizardman King",
       "Celestial Flier",
-      "Iron Fang"
-    ],
-    "field": [
+      "Iron Fang",
       "Brigand Leader"
     ],
     "pets": [

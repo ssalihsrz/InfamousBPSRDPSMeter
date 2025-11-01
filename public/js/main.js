@@ -893,9 +893,8 @@ async function updateBossDisplay() {
         if (data.boss && data.boss.name) {
             const boss = data.boss;
             const categoryEmoji = {
-                'raid': '💀',
+                'field_raid': '💀',
                 'dungeon': '⚔️',
-                'field': '🌍',
                 'unknown': '👹'
             };
             const emoji = categoryEmoji[boss.category] || '👹';
