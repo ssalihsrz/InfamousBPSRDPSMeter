@@ -893,11 +893,11 @@ async function updateBossDisplay() {
         if (data.boss && data.boss.name) {
             const boss = data.boss;
             const categoryEmoji = {
-                'field_raid': '💀',
-                'dungeon': '⚔️',
-                'unknown': '👹'
+                'boss': '👹',
+                'pets': '🐾',
+                'unknown': '❓'
             };
-            const emoji = categoryEmoji[boss.category] || '👹';
+            const emoji = categoryEmoji[boss.category] || '❓';
             
             bossNameEl.textContent = `${emoji} ${boss.name}`;
             bossContainer.style.display = '';

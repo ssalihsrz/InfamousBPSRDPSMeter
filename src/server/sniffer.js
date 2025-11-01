@@ -322,12 +322,8 @@ class Sniffer {
             this.currentBossId = targetUid;
             this.bossFirstSeen = this.bossEncounters.get(uidStr).firstSeen;
             
-            // Update zone type based on boss category
-            if (category === 'field_raid') {
-                this.currentZoneType = 'field_raid';
-            } else if (category === 'dungeon') {
-                this.currentZoneType = 'dungeon';
-            }
+            // Note: Zone type is determined by zone name, not boss category
+            // Bosses can appear in field, dungeon, or raid zones
             
             // Notify data manager of boss encounter
             this.userDataManager.setCurrentBoss(bossName, category);

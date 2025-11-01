@@ -83,15 +83,13 @@
     "10901": "Silver Nappo"
   },
   "bossCategories": {
-    "field_raid": [
+    "boss": [
       "Frost Ogre",
       "Tempest Ogre",
       "Inferno Ogre",
       "Golden Juggernaut",
       "Phantom Arachnocrab",
-      "Venobzzar Incubator"
-    ],
-    "dungeon": [
+      "Venobzzar Incubator",
       "Storm Goblin King",
       "Goblin King",
       "Muku King",
@@ -108,5 +106,18 @@
       "Golden Nappo",
       "Silver Nappo"
     ]
-  }
+  },
+  "dungeonZones": [
+    "Chaotic - Goblin Lair",
+    "Chaotic - Tina's Mindrealm",
+    "Chaotic - Towering Ruin",
+    "Chaotic - Kanamia Tribe",
+    "Chaotic - Dark Mist Fortress",
+    "Chaotic - Dragon Claw Valley"
+  ],
+  "raidZones": [
+    "Floating Island - Dragon Shackles",
+    "World Boss Crusade",
+    "Stimen Vaults"
+  ]
 }
