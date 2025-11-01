@@ -66,15 +66,14 @@
 
 ## 📋 Recent Releases
 
-### v3.1.195 - Compact Mode Expand Button
-- **Expand Button Not Working** - Compact mode expand button now shows top 20 players properly
+### v4.0.3 - Window Auto-Resize Fix
+- **Window Sizing** - Fixed automatic window resize after meter reset
 
-### v3.1.194 - Session Loading & GS Display
-- **Loading... Persists** - Fixed stuck loading when clicking second player
-- **GS Display** - Changed from "-" to "N/A" when Gear Score is missing
+### v4.0.2 - Name/GS Capture Race Condition
+- **Race Condition** - Fixed timing issue preventing name and GS capture
 
-### v3.1.193 - Dynamic Dropdown Refresh
-- **Dropdown Not Updating** - Session Manager operations now update main window dropdown immediately
+### v4.0.1 - Zone Change Packet Processing
+- **Packet Processing** - Improved zone change detection and packet handling
 
 ---
 
