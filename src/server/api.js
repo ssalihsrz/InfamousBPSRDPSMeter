@@ -7,7 +7,7 @@ const fsPromises = require('fs').promises;
 const fs = require('fs');
 const VPNDetector = require('./vpnDetector');
 
-function initializeApi(app, server, io, userDataManager, logger, globalSettings, VERSION = '2.5.1', userDataPath = __dirname, mappingManager = null) {
+function initializeApi(app, server, io, userDataManager, logger, globalSettings, VERSION = '2.5.1', userDataPath = __dirname, mappingManager = null, sniffer = null) {
     // Use userDataPath for all user data (AppData on Windows)
     const SESSIONS_PATH = path.join(userDataPath, 'sessions');
     const SETTINGS_PATH = path.join(userDataPath, 'settings.json');

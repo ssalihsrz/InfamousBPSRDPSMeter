@@ -190,7 +190,7 @@ async function main() {
     logger.info('🔧 About to initialize API...');
     
     try {
-        initializeApi(app, server, io, userDataManager, logger, globalSettings, VERSION, userDataPath, mappingManager); // Initialize API with mappingManager
+        initializeApi(app, server, io, userDataManager, logger, globalSettings, VERSION, userDataPath, mappingManager, sniffer); // Pass sniffer for boss tracking
         console.log('✅ API initialization completed');
         logger.info('✅ API initialization completed');
     } catch (error) {
