@@ -1,9 +1,9 @@
-# ⚔️ Infamous BPSR DPS Meter v4.0.0
+# ⚔️ Infamous BPSR DPS Meter v3.1.196
 
 **The Ultimate Blue Protocol Combat Tracker** - Real-time DPS/HPS analysis with modern UI
 
 [![License](https://img.shields.io/badge/License-AGPL--3.0-blue)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-4.0.0-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
+[![Version](https://img.shields.io/badge/Version-3.1.196-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue)](#installation)
 [![Downloads](https://img.shields.io/github/downloads/ssalihsrz/InfamousBPSRDPSMeter/total)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases)
 
@@ -15,26 +15,12 @@
 
 ---
 
-## 📋 Latest Release: v4.0.0
+## 📋 Latest Release: v3.1.196
 
-### 🎯 Major Update - Critical Fixes & Enhancements
+### 🐛 Critical Fix
+- **Names Not Showing After Zone Change** - Player names now properly preserved during zone/channel changes (fixed double-reset pattern)
 
-**Critical Bug Fixes:**
-- 🔴 **DPS Calculations Restored** - Fixed realtime DPS showing 0 for all players (broken in hotfix)
-- 🔴 **Crash Fix** - Resolved getCritRate/getLuckyRate method crash on combat start
-- 📝 **Session Naming** - Standardized all sessions to: `MM/DD HH:MM AM/PM - Zone - Duration (Xp)`
-
-**UI/UX Improvements:**
-- 🎨 **Compact Empty State** - Fixed UI going "out of shape" during zone transitions
-- 👥 **Smart Player Filtering** - Only shows top 20 active combatants (no idle nearby players)
-- 🏅 **Gear Score Debugging** - Enhanced logging to diagnose GS capture issues
-
-**New Features:**
-- 💾 **Auto-Save Sessions Toggle** - Quick checkbox in main UI to enable/disable session auto-saving
-- ⚙️ **Consolidated Settings** - Update settings moved to General tab (removed from About)
-- 📊 **Realtime Stats** - Current DPS, Max DPS, Average DPS all working properly
-
-[📥 Download v4.0.0](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)
+[📥 Download v3.1.196](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)
 
 ---
 
@@ -80,15 +66,15 @@
 
 ## 📋 Recent Releases
 
-### v4.0.0 - Expand Button Fix
-- **Compact Mode** - Fixed expand button not showing top 20 players properly
+### v3.1.195 - Compact Mode Expand Button
+- **Expand Button Not Working** - Compact mode expand button now shows top 20 players properly
 
-### v4.0.0 - Session Loading & GS Display
-- **Loading State** - Fixed stuck loading when clicking second player
+### v3.1.194 - Session Loading & GS Display
+- **Loading... Persists** - Fixed stuck loading when clicking second player
 - **GS Display** - Changed from "-" to "N/A" when Gear Score is missing
 
-### v4.0.0 - Dynamic Dropdown Refresh
-- **Session Manager** - Operations now update main window dropdown immediately
+### v3.1.193 - Dynamic Dropdown Refresh
+- **Dropdown Not Updating** - Session Manager operations now update main window dropdown immediately
 
 ---
 
@@ -98,7 +84,7 @@
 
 **Step 1: Download the Latest Release**
 - 🔗 **[Download Installer](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)** ← Click here\!
-- Get: \`InfamousBPSRDPSMeter-Setup-4.0.0.exe\` (~90MB)
+- Get: \`InfamousBPSRDPSMeter-Setup-3.1.196.exe\` (~90MB)
 - 🆕 **Auto-Update:** Automatic update notifications from GitHub\!
 
 **Step 2: Install Npcap (Required)**
