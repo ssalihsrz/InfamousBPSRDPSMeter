@@ -946,8 +946,8 @@ class UserDataManager {
             // Clear synchronously to avoid race condition - don't await async clearAll
             this.users = new Map();
             
-            // Restore ALL captured names (they'll be loaded when users are created)
-            // No need to manually restore - getUser() will load from playerMap automatically
+            // IMPORTANT: Names are preserved in this.playerMap (not cleared above)
+            // When getUser() creates new users, it automatically loads names from playerMap (line 884)
             
             this.startTime = Date.now();
             this.lastAutoSaveTime = 0;
@@ -1006,8 +1006,8 @@ class UserDataManager {
             // Clear synchronously to avoid race condition - don't await async clearAll
             this.users = new Map();
             
-            // Restore ALL captured names (they'll be loaded when users are created)
-            // No need to manually restore - getUser() will load from playerMap automatically
+            // IMPORTANT: Names are preserved in this.playerMap (not cleared above)
+            // When getUser() creates new users, it automatically loads names from playerMap (line 884)
             
             this.startTime = Date.now();
             this.lastAutoSaveTime = 0;
