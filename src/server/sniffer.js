@@ -107,6 +107,7 @@ class Sniffer {
         this.currentZoneId = null;
         this.currentZoneType = 'unknown'; // NEW: Track zone type
         this.unknownZones = new Map(); // NEW: Track unknown zone IDs
+        this.unknownZonesDirty = false; // Track if unknown zones need saving
         this.FRAGMENT_TIMEOUT = 30000;
         this.eth_queue = [];
         this.capInstance = null;
@@ -211,10 +212,8 @@ class Sniffer {
             this.logger.info(`📦 Packet Data (first 200 chars): ${rawPacketData.slice(0, 200)}`);
         }
         
-        // Save to file asynchronously (don't wait)
-        this.saveUnknownZones().catch(err => {
-            this.logger.error(`Failed to save unknown zones: ${err.message}`);
-        });
+        // Mark as dirty - will be saved periodically
+        this.unknownZonesDirty = true;
     }
 
     /**
@@ -804,6 +803,14 @@ class Sniffer {
 
             // Auto-cleanup TCP cache if growing too large
             this.cleanupTcpCache();
+
+            // Save unknown zones if dirty (debounced)
+            if (this.unknownZonesDirty && this.unknownZones.size > 0) {
+                this.saveUnknownZones().catch(err => {
+                    this.logger.error(`Failed to save unknown zones: ${err.message}`);
+                });
+                this.unknownZonesDirty = false;
+            }
 
             // Check for connection timeout with auto-recovery
             if (this.tcp_last_time && now - this.tcp_last_time > this.FRAGMENT_TIMEOUT) {
