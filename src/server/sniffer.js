@@ -105,6 +105,8 @@ class Sniffer {
         this.zoneNames = zoneNamesData.zones;
         this.currentZone = 'Unknown Zone';
         this.currentZoneId = null;
+        this.currentZoneType = 'unknown'; // NEW: Track zone type
+        this.unknownZones = new Map(); // NEW: Track unknown zone IDs
         this.FRAGMENT_TIMEOUT = 30000;
         this.eth_queue = [];
         this.capInstance = null;
@@ -125,6 +127,127 @@ class Sniffer {
 
     setPaused(paused) {
         this.isPaused = paused;
+    }
+
+    /**
+     * Determine zone type based on zone ID pattern
+     * @param {number|string} zoneId - Zone ID (typically server port)
+     * @returns {string} - Zone type: 'town', 'field', 'raid', 'dungeon', 'pvp', 'unknown'
+     */
+    getZoneType(zoneId) {
+        if (!zoneId) return 'unknown';
+        
+        const id = parseInt(zoneId);
+        
+        // Pattern-based zone type detection
+        if (id >= 1000 && id < 2000) return 'town';      // Safe zones, cities
+        if (id >= 2000 && id < 3000) return 'field';     // Open world areas
+        if (id >= 3000 && id < 4000) return 'raid';      // Raid instances
+        if (id >= 4000 && id < 5000) return 'dungeon';   // Dungeon instances
+        if (id >= 5000 && id < 6000) return 'pvp';       // PvP/Arena zones
+        
+        return 'unknown';
+    }
+
+    /**
+     * Get zone name from ID, with fallback to descriptive name
+     * @param {number|string} zoneId - Zone ID
+     * @returns {string} - Zone name
+     */
+    getZoneName(zoneId) {
+        if (!zoneId) return 'Unknown Zone';
+        
+        const idStr = String(zoneId);
+        
+        // Check if we have a mapped name
+        if (this.zoneNames[idStr]) {
+            return this.zoneNames[idStr];
+        }
+        
+        // Generate descriptive name based on type
+        const zoneType = this.getZoneType(zoneId);
+        const typeLabels = {
+            'town': 'Town',
+            'field': 'Field',
+            'raid': 'Raid',
+            'dungeon': 'Dungeon',
+            'pvp': 'PvP Zone'
+        };
+        
+        const typeLabel = typeLabels[zoneType] || 'Zone';
+        return `${typeLabel} ${zoneId}`;
+    }
+
+    /**
+     * Log unknown zone for future mapping
+     * @param {number|string} zoneId - Zone ID
+     * @param {string} rawPacketData - Hex data from packet (optional)
+     */
+    logUnknownZone(zoneId, rawPacketData = null) {
+        if (!zoneId) return;
+        
+        const idStr = String(zoneId);
+        
+        // Skip if already mapped
+        if (this.zoneNames[idStr]) return;
+        
+        // Skip if already logged
+        if (this.unknownZones.has(idStr)) return;
+        
+        const zoneType = this.getZoneType(zoneId);
+        const timestamp = new Date().toISOString();
+        
+        // Store unknown zone info
+        this.unknownZones.set(idStr, {
+            id: zoneId,
+            type: zoneType,
+            firstSeen: timestamp,
+            rawData: rawPacketData ? rawPacketData.slice(0, 200) : null // First 200 chars
+        });
+        
+        // Log to console
+        this.logger.info(`🗺️ UNKNOWN ZONE DETECTED: ID=${zoneId}, Type=${zoneType}, Time=${timestamp}`);
+        if (rawPacketData) {
+            this.logger.info(`📦 Packet Data (first 200 chars): ${rawPacketData.slice(0, 200)}`);
+        }
+        
+        // Save to file asynchronously (don't wait)
+        this.saveUnknownZones().catch(err => {
+            this.logger.error(`Failed to save unknown zones: ${err.message}`);
+        });
+    }
+
+    /**
+     * Save unknown zones to file for future mapping
+     */
+    async saveUnknownZones() {
+        if (this.unknownZones.size === 0) return;
+        
+        const fs = require('fs').promises;
+        const path = require('path');
+        
+        try {
+            const userDataPath = this.userDataManager?.userDataPath || path.join(__dirname, '..', '..');
+            const unknownZonesPath = path.join(userDataPath, 'unknown_zones.json');
+            
+            // Convert Map to object for JSON
+            const unknownZonesObj = {};
+            for (const [id, data] of this.unknownZones.entries()) {
+                unknownZonesObj[id] = data;
+            }
+            
+            const output = {
+                comment: "Unknown zones detected during gameplay - help us complete the mapping!",
+                generatedAt: new Date().toISOString(),
+                count: this.unknownZones.size,
+                zones: unknownZonesObj
+            };
+            
+            await fs.writeFile(unknownZonesPath, JSON.stringify(output, null, 2), 'utf8');
+            this.logger.info(`💾 Saved ${this.unknownZones.size} unknown zones to: ${unknownZonesPath}`);
+        } catch (error) {
+            this.logger.error(`Failed to save unknown zones: ${error.message}`);
+        }
     }
 
     // Normalize server address to detect real game server (ignore VPN routing IPs)
@@ -295,6 +418,7 @@ class Sniffer {
                                         // ZONE/SERVER CHANGE DETECTED - Extract basic info
                                         let zoneName = 'Zone Change';
                                         let zoneId = null;
+                                        let zoneType = 'unknown';
                                         let serverInfo = '';
                                         
                                         try {
@@ -304,21 +428,30 @@ class Sniffer {
                                             const [destIp, destPort] = destServer.split(':');
                                             const portNum = parseInt(destPort);
                                             zoneId = portNum; // Use port as zone identifier
+                                            
+                                            // NEW: Get zone type and name using helper functions
+                                            zoneType = this.getZoneType(zoneId);
+                                            zoneName = this.getZoneName(zoneId);
                                             serverInfo = `Server ${destIp}:${portNum}`;
-                                            zoneName = `${serverInfo}`;
+                                            
+                                            // NEW: Log unknown zones with packet data for mapping
+                                            const rawPacketHex = buf ? buf.toString('hex') : null;
+                                            this.logUnknownZone(zoneId, rawPacketHex);
                                         } catch (e) {
                                             zoneName = 'Zone Change';
+                                            zoneType = 'unknown';
                                         }
                                         
                                         // Set current zone for session naming
                                         this.currentZone = zoneName;
                                         this.currentZoneId = zoneId;
+                                        this.currentZoneType = zoneType; // NEW: Store zone type
                                         this.userDataManager.setCurrentZone(zoneName, zoneId);
                                         
                                         // LOG ZONE CHANGE
                                         console.log('='.repeat(80));
                                         console.log('🌍 ZONE/SERVER CHANGE DETECTED');
-                                        console.log(`📍 ${zoneName}`);
+                                        console.log(`📍 ${zoneName} (${zoneType.toUpperCase()})`);
                                         console.log(`🔗 Full: ${src_server}`);
                                         console.log('='.repeat(80));
                                         
