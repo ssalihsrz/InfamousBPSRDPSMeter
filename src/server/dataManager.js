@@ -386,6 +386,9 @@ class UserData {
      * @param {boolean} isDead - 是否致死伤害
      * */
     addTakenDamage(damage, isDead) {
+        // Update combat activity timestamp (taking damage = in combat)
+        this.lastCombatActivity = Date.now();
+        
         this.takenDamage += damage;
         if (isDead) this.deadCount++;
         
