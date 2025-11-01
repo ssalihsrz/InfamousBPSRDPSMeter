@@ -14,7 +14,7 @@ const PacketProcessor = require(path.join(__dirname, 'algo', 'packet'));
 const MappingManager = require(path.join(__dirname, 'src', 'mapping-manager'));
 
 // Read version from package.json (works in both dev and production)
-let VERSION = '4.0.5'; // No "v" prefix - will be added where displayed
+let VERSION = '4.0.6'; // No "v" prefix - will be added where displayed
 try {
     const packageJson = require(path.join(__dirname, 'package.json'));
     VERSION = packageJson.version; // package.json has no "v" prefix
@@ -32,7 +32,7 @@ let globalSettings = {
     enableHistorySave: false,
     isPaused: false, // CRITICAL: Must be false for data to flow on startup
     keepDataAfterDungeon: true, // Prevent premature clearing
-    autoSaveSessions: true, // Auto-save sessions on zone/dungeon/boss end (v4.0.5)
+    autoSaveSessions: true, // Auto-save sessions on zone/dungeon/boss end (v4.0.6)
     networkAdapter: 'auto', // 'auto' for automatic detection, or adapter index number
     maxSessions: 20, // Maximum number of auto-saved sessions to keep
 };
