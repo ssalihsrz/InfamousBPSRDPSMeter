@@ -935,11 +935,12 @@ class UserDataManager {
         if (this.waitingForNewCombat) {
             console.log('🔄 First damage detected! Resetting meter for fresh tracking...');
             
-            // CRITICAL v4.0.5: Preserve names AND GS from BOTH sources
+            // CRITICAL v4.0.5: Preserve names, GS, and maxHP from BOTH sources
             // 1. this.users (active users with combat data)
             // 2. this.playerMap (captured names from packets during zone change)
             const capturedNames = new Map();
-            const capturedGS = new Map(); // NEW: Also preserve GS
+            const capturedGS = new Map();
+            const capturedMaxHP = new Map(); // CRITICAL: Preserve maxHP for overheal calculations
             
             // Source 1: Active users
             for (const [userUid, user] of this.users.entries()) {
@@ -947,9 +948,13 @@ class UserDataManager {
                 if (user.name && !user.name.startsWith('Unknown_')) {
                     capturedNames.set(uidStr, user.name);
                 }
-                // NEW: Preserve GS if available
+                // Preserve GS if available
                 if (user.fightPoint && user.fightPoint > 0) {
                     capturedGS.set(uidStr, user.fightPoint);
+                }
+                // CRITICAL: Preserve maxHP (needed for overheal calculation)
+                if (user.attr && user.attr.max_hp && user.attr.max_hp > 0) {
+                    capturedMaxHP.set(uidStr, user.attr.max_hp);
                 }
             }
             
@@ -960,18 +965,28 @@ class UserDataManager {
                 }
             }
             
-            if (capturedNames.size > 0 || capturedGS.size > 0) {
-                console.log(`📝 Preserving before reset: ${capturedNames.size} names, ${capturedGS.size} GS values`);
+            if (capturedNames.size > 0 || capturedGS.size > 0 || capturedMaxHP.size > 0) {
+                console.log(`📝 Preserving before reset: ${capturedNames.size} names, ${capturedGS.size} GS, ${capturedMaxHP.size} maxHP`);
             }
             
             // Clear synchronously to avoid race condition - don't await async clearAll
             this.users = new Map();
             
             // CRITICAL FIX: Clear userCache to prevent ghost players from old channel
-            // Only GS values that were explicitly preserved above should remain
+            // Preserve GS and maxHP that were explicitly captured above
             const preservedCache = new Map();
             for (const [uidStr, gs] of capturedGS.entries()) {
-                preservedCache.set(uidStr, { fightPoint: gs });
+                const cacheEntry = { fightPoint: gs };
+                if (capturedMaxHP.has(uidStr)) {
+                    cacheEntry.maxHp = capturedMaxHP.get(uidStr);
+                }
+                preservedCache.set(uidStr, cacheEntry);
+            }
+            // Also preserve maxHP for players without GS
+            for (const [uidStr, maxHp] of capturedMaxHP.entries()) {
+                if (!preservedCache.has(uidStr)) {
+                    preservedCache.set(uidStr, { maxHp });
+                }
             }
             this.userCache = preservedCache;
             
@@ -1009,11 +1024,12 @@ class UserDataManager {
         if (this.waitingForNewCombat) {
             console.log('🔄 First healing detected! Resetting meter for fresh tracking...');
             
-            // CRITICAL v4.0.5: Preserve names AND GS from BOTH sources
+            // CRITICAL v4.0.5: Preserve names, GS, and maxHP from BOTH sources
             // 1. this.users (active users with combat data)
             // 2. this.playerMap (captured names from packets during zone change)
             const capturedNames = new Map();
-            const capturedGS = new Map(); // NEW: Also preserve GS
+            const capturedGS = new Map();
+            const capturedMaxHP = new Map(); // CRITICAL: Preserve maxHP for overheal calculations
             
             // Source 1: Active users
             for (const [userUid, user] of this.users.entries()) {
@@ -1021,9 +1037,13 @@ class UserDataManager {
                 if (user.name && !user.name.startsWith('Unknown_')) {
                     capturedNames.set(uidStr, user.name);
                 }
-                // NEW: Preserve GS if available
+                // Preserve GS if available
                 if (user.fightPoint && user.fightPoint > 0) {
                     capturedGS.set(uidStr, user.fightPoint);
+                }
+                // CRITICAL: Preserve maxHP (needed for overheal calculation)
+                if (user.attr && user.attr.max_hp && user.attr.max_hp > 0) {
+                    capturedMaxHP.set(uidStr, user.attr.max_hp);
                 }
             }
             
@@ -1034,18 +1054,28 @@ class UserDataManager {
                 }
             }
             
-            if (capturedNames.size > 0 || capturedGS.size > 0) {
-                console.log(`📝 Preserving before reset: ${capturedNames.size} names, ${capturedGS.size} GS values`);
+            if (capturedNames.size > 0 || capturedGS.size > 0 || capturedMaxHP.size > 0) {
+                console.log(`📝 Preserving before reset: ${capturedNames.size} names, ${capturedGS.size} GS, ${capturedMaxHP.size} maxHP`);
             }
             
             // Clear synchronously to avoid race condition - don't await async clearAll
             this.users = new Map();
             
             // CRITICAL FIX: Clear userCache to prevent ghost players from old channel
-            // Only GS values that were explicitly preserved above should remain
+            // Preserve GS and maxHP that were explicitly captured above
             const preservedCache = new Map();
             for (const [uidStr, gs] of capturedGS.entries()) {
-                preservedCache.set(uidStr, { fightPoint: gs });
+                const cacheEntry = { fightPoint: gs };
+                if (capturedMaxHP.has(uidStr)) {
+                    cacheEntry.maxHp = capturedMaxHP.get(uidStr);
+                }
+                preservedCache.set(uidStr, cacheEntry);
+            }
+            // Also preserve maxHP for players without GS
+            for (const [uidStr, maxHp] of capturedMaxHP.entries()) {
+                if (!preservedCache.has(uidStr)) {
+                    preservedCache.set(uidStr, { maxHp });
+                }
             }
             this.userCache = preservedCache;
             
