@@ -895,6 +895,10 @@ async function updateBossDisplay() {
             const categoryEmoji = {
                 'boss': '👹',
                 'pets': '🐾',
+                'dungeon': '⚔️',      // Fallback (shouldn't be used)
+                'raid': '💀',          // Fallback (shouldn't be used)
+                'field': '🌍',         // Fallback (shouldn't be used)
+                'field_raid': '💀',    // Fallback (shouldn't be used)
                 'unknown': '❓'
             };
             const emoji = categoryEmoji[boss.category] || '❓';
