@@ -964,15 +964,16 @@ class UserDataManager {
                 console.log(`📝 Preserving before reset: ${capturedNames.size} names, ${capturedGS.size} GS values`);
             }
             
-            // NEW: Store GS in userCache so it persists during reset
-            for (const [uidStr, gs] of capturedGS.entries()) {
-                let cached = this.userCache.get(uidStr) || {};
-                cached.fightPoint = gs;
-                this.userCache.set(uidStr, cached);
-            }
-            
             // Clear synchronously to avoid race condition - don't await async clearAll
             this.users = new Map();
+            
+            // CRITICAL FIX: Clear userCache to prevent ghost players from old channel
+            // Only GS values that were explicitly preserved above should remain
+            const preservedCache = new Map();
+            for (const [uidStr, gs] of capturedGS.entries()) {
+                preservedCache.set(uidStr, { fightPoint: gs });
+            }
+            this.userCache = preservedCache;
             
             // IMPORTANT: Names are preserved in this.playerMap (not cleared above)
             // When getUser() creates new users, it automatically loads names from playerMap (line 884)
@@ -1037,15 +1038,16 @@ class UserDataManager {
                 console.log(`📝 Preserving before reset: ${capturedNames.size} names, ${capturedGS.size} GS values`);
             }
             
-            // NEW: Store GS in userCache so it persists during reset
-            for (const [uidStr, gs] of capturedGS.entries()) {
-                let cached = this.userCache.get(uidStr) || {};
-                cached.fightPoint = gs;
-                this.userCache.set(uidStr, cached);
-            }
-            
             // Clear synchronously to avoid race condition - don't await async clearAll
             this.users = new Map();
+            
+            // CRITICAL FIX: Clear userCache to prevent ghost players from old channel
+            // Only GS values that were explicitly preserved above should remain
+            const preservedCache = new Map();
+            for (const [uidStr, gs] of capturedGS.entries()) {
+                preservedCache.set(uidStr, { fightPoint: gs });
+            }
+            this.userCache = preservedCache;
             
             // IMPORTANT: Names are preserved in this.playerMap (not cleared above)
             // When getUser() creates new users, it automatically loads names from playerMap (line 884)
