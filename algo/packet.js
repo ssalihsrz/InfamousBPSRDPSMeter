@@ -490,6 +490,14 @@ class PacketProcessor {
             if (!vData.CharId) return;
             const playerUid = vData.CharId.toNumber();
 
+            // IMPROVEMENT #2: SyncContainerData is ONLY sent for local player
+            // Use this as definitive source for local player detection (more reliable than SyncToMeDeltaInfo)
+            if (currentUserUuid.isZero() && playerUid > 0) {
+                currentUserUuid = Long.fromNumber(playerUid).shiftLeft(16);
+                this.logger.info(`🎯 Local player detected via SyncContainerData: UID ${playerUid}`);
+                console.log(`🎯 LOCAL PLAYER DETECTED: UID ${playerUid}`);
+            }
+
             if (vData.RoleLevel && vData.RoleLevel.Level) this.userDataManager.setAttrKV(playerUid, 'level', vData.RoleLevel.Level);
 
             if (vData.Attr && vData.Attr.CurHp) this.userDataManager.setAttrKV(playerUid, 'hp', vData.Attr.CurHp.toNumber());
@@ -518,16 +526,16 @@ class PacketProcessor {
                 this.userDataManager.setProfession(playerUid, professionName);
             }
         } catch (err) {
-            // CRITICAL FIX: Write to temp directory, NOT Program Files (EPERM error)
+            // IMPROVEMENT: Don't throw - log and continue processing other packets
             const tempPath = require('os').tmpdir();
             const debugFile = require('path').join(tempPath, 'SyncContainerData.dat');
             try {
                 fs.writeFileSync(debugFile, payloadBuffer);
-                this.logger.warn(`Failed to decode SyncContainerData for player ${currentUserUuid.shiftRight(16)}. Debug data saved to: ${debugFile}`);
+                this.logger.warn(`Failed to decode SyncContainerData, skipping. Debug data saved to: ${debugFile}`);
             } catch (writeErr) {
-                this.logger.warn(`Failed to decode SyncContainerData for player ${currentUserUuid.shiftRight(16)}. Could not save debug data: ${writeErr.message}`);
+                this.logger.warn(`Failed to decode SyncContainerData, skipping. Error: ${err.message}`);
             }
-            throw err;
+            // Don't throw - continue processing other packets in batch
         }
     }
 
