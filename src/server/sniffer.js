@@ -6,6 +6,7 @@ const findDefaultNetworkDevice = require('../../algo/netInterfaceUtil'); // Adju
 const { Lock } = require('./dataManager'); // Import Lock from dataManager
 const pb = require('../../algo/blueprotobuf'); // Import protobuf definitions directly
 const zoneNamesData = require('../../tables/zone_names.json'); // Import zone names
+const monstersData = require('../../tables/monsters.json'); // Import monster/boss mappings
 
 const Cap = cap.Cap;
 
@@ -108,6 +109,14 @@ class Sniffer {
         this.currentZoneType = 'unknown'; // NEW: Track zone type
         this.unknownZones = new Map(); // NEW: Track unknown zone IDs
         this.unknownZonesDirty = false; // Track if unknown zones need saving
+        
+        // Boss tracking for enhanced zone detection
+        this.monsters = monstersData.monsters;
+        this.bossCategories = monstersData.bossCategories;
+        this.currentBoss = null; // Current boss being fought
+        this.currentBossId = null; // Current boss monster ID
+        this.bossFirstSeen = null; // When boss was first detected
+        this.bossEncounters = new Map(); // Track all boss encounters: bossId -> {name, firstSeen, lastSeen}
         this.FRAGMENT_TIMEOUT = 30000;
         this.eth_queue = [];
         this.capInstance = null;
@@ -247,6 +256,116 @@ class Sniffer {
         } catch (error) {
             this.logger.error(`Failed to save unknown zones: ${error.message}`);
         }
+    }
+
+    /**
+     * Check if a target UID is a known boss/monster
+     * @param {number|string} targetUid - Target entity UID
+     * @returns {string|null} - Boss name if found, null otherwise
+     */
+    getBossName(targetUid) {
+        if (!targetUid) return null;
+        const uidStr = String(targetUid);
+        return this.monsters[uidStr] || null;
+    }
+
+    /**
+     * Get boss category (raid/dungeon/field)
+     * @param {string} bossName - Boss name
+     * @returns {string|null} - Category or null
+     */
+    getBossCategory(bossName) {
+        if (!bossName) return null;
+        
+        for (const [category, bossList] of Object.entries(this.bossCategories)) {
+            if (bossList.includes(bossName)) {
+                return category;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Update current boss tracking when damage is dealt to a boss
+     * @param {number|string} targetUid - Target entity UID
+     */
+    updateBossTracking(targetUid) {
+        const bossName = this.getBossName(targetUid);
+        
+        if (!bossName) return; // Not a boss
+        
+        const now = Date.now();
+        const uidStr = String(targetUid);
+        
+        // Track boss encounter
+        if (!this.bossEncounters.has(uidStr)) {
+            const category = this.getBossCategory(bossName);
+            this.bossEncounters.set(uidStr, {
+                name: bossName,
+                category: category || 'unknown',
+                firstSeen: now,
+                lastSeen: now,
+                uid: targetUid
+            });
+            
+            this.logger.info(`👹 BOSS DETECTED: ${bossName} (${category || 'unknown'})`);
+        } else {
+            // Update last seen time
+            const encounter = this.bossEncounters.get(uidStr);
+            encounter.lastSeen = now;
+        }
+        
+        // Update current boss if different or first time
+        if (this.currentBossId !== targetUid) {
+            const category = this.getBossCategory(bossName);
+            this.currentBoss = bossName;
+            this.currentBossId = targetUid;
+            this.bossFirstSeen = this.bossEncounters.get(uidStr).firstSeen;
+            
+            // Update zone type based on boss category
+            if (category === 'raid') {
+                this.currentZoneType = 'raid';
+            } else if (category === 'dungeon') {
+                this.currentZoneType = 'dungeon';
+            }
+            
+            // Notify data manager of boss encounter
+            this.userDataManager.setCurrentBoss(bossName, category);
+            
+            this.logger.info(`🎯 Now fighting: ${bossName} [${category || 'unknown'}]`);
+        }
+    }
+
+    /**
+     * Clear boss tracking (called on zone change or reset)
+     */
+    clearBossTracking() {
+        if (this.currentBoss) {
+            this.logger.info(`✅ Boss encounter ended: ${this.currentBoss}`);
+        }
+        this.currentBoss = null;
+        this.currentBossId = null;
+        this.bossFirstSeen = null;
+        // Keep bossEncounters Map for session history
+    }
+
+    /**
+     * Get current boss information for display
+     * @returns {object|null} - Boss info or null
+     */
+    getCurrentBossInfo() {
+        if (!this.currentBoss) return null;
+        
+        const category = this.getBossCategory(this.currentBoss);
+        const duration = this.bossFirstSeen ? Date.now() - this.bossFirstSeen : 0;
+        
+        return {
+            name: this.currentBoss,
+            category: category || 'unknown',
+            uid: this.currentBossId,
+            duration: Math.floor(duration / 1000), // seconds
+            firstSeen: this.bossFirstSeen
+        };
     }
 
     // Normalize server address to detect real game server (ignore VPN routing IPs)
@@ -446,6 +565,9 @@ class Sniffer {
                                         this.currentZoneId = zoneId;
                                         this.currentZoneType = zoneType; // NEW: Store zone type
                                         this.userDataManager.setCurrentZone(zoneName, zoneId);
+                                        
+                                        // Clear boss tracking on zone change
+                                        this.clearBossTracking();
                                         
                                         // LOG ZONE CHANGE
                                         console.log('='.repeat(80));
@@ -679,7 +801,8 @@ class Sniffer {
         this.packetProcessor = new PacketProcessorClass({ 
             logger: this.logger, 
             userDataManager: this.userDataManager,
-            mappingManager: this.mappingManager 
+            mappingManager: this.mappingManager,
+            sniffer: this 
         });
 
         const device = devices[num].name;

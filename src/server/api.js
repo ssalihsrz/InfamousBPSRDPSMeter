@@ -94,6 +94,15 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
         res.json(data);
     });
 
+    app.get('/api/boss', (req, res) => {
+        // Get current boss information from sniffer
+        const bossInfo = sniffer ? sniffer.getCurrentBossInfo() : null;
+        res.json({
+            code: 0,
+            boss: bossInfo
+        });
+    });
+
     app.get('/api/clear', (req, res) => {
         userDataManager.clearAll(globalSettings); // Pass globalSettings
         console.log('Statistics cleared!');

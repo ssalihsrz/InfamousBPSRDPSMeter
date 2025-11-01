@@ -703,6 +703,8 @@ class UserDataManager {
         this.playerMapPath = path.join(userDataPath, 'player_map.json');
         this.currentZone = null;
         this.currentZoneId = null;
+        this.currentBoss = null; // Current boss being fought
+        this.currentBossCategory = null; // Boss category (raid/dungeon/field)
         this.zoneChanged = false;
         this.lastAutoSaveTime = 0; // Track last auto-save time
         this.globalSettings = globalSettings;
@@ -1448,6 +1450,18 @@ class UserDataManager {
         return this.currentZone || 'Unknown Zone';
     }
 
+    /** Set current boss for session naming and tracking */
+    setCurrentBoss(bossName, bossCategory) {
+        this.currentBoss = bossName;
+        this.currentBossCategory = bossCategory;
+        this.logger.info(`👹 Boss encounter: ${bossName}${bossCategory ? ` [${bossCategory}]` : ''}`);
+    }
+
+    /** Get current boss name for display */
+    getCurrentBossName() {
+        return this.currentBoss || null;
+    }
+
     /** Format duration in human-readable format */
     formatDuration(ms) {
         const seconds = Math.floor(ms / 1000);
@@ -1700,8 +1714,15 @@ class UserDataManager {
             const timeStr = `${hours12}:${minutes} ${ampm}`;
             const dateStr = `${month}/${day}`;
             const durationStr = duration > 0 ? this.formatDuration(duration) : '0s';
-            const zoneName = zoneContext || 'Battle';
-            const sessionName = `${dateStr} ${timeStr} - ${zoneName} - ${durationStr} (${players.length}p)`;
+            
+            // Include boss name if available, otherwise use zone name
+            let contextName = zoneContext || 'Battle';
+            if (this.currentBoss) {
+                const categoryLabel = this.currentBossCategory ? ` [${this.currentBossCategory}]` : '';
+                contextName = `${this.currentBoss}${categoryLabel}`;
+            }
+            
+            const sessionName = `${dateStr} ${timeStr} - ${contextName} - ${durationStr} (${players.length}p)`;
             
             const sessionData = {
                 id: timestamp,

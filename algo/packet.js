@@ -257,10 +257,11 @@ const streamReadString = (reader) => {
 let currentUserUuid = Long.ZERO;
 
 class PacketProcessor {
-    constructor({ logger, userDataManager, mappingManager }) {
+    constructor({ logger, userDataManager, mappingManager, sniffer }) {
         this.logger = logger;
         this.userDataManager = userDataManager;
         this.mappingManager = mappingManager; // Boss/mob mapping manager
+        this.sniffer = sniffer; // Sniffer instance for boss tracking
         
         // PHASE 3 OPTIMIZATION: Packet frequency tracking
         this.packetStats = {
@@ -394,6 +395,11 @@ class PacketProcessor {
                             hpLessenValue.toNumber(),
                             targetUuid.toNumber(),
                         );
+                        
+                        // NEW: Track boss encounters
+                        if (this.sniffer && this.sniffer.updateBossTracking) {
+                            this.sniffer.updateBossTracking(targetUuid.toNumber());
+                        }
                     }
                 }
             }

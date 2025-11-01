@@ -874,8 +874,40 @@ function updateStatusBar(activeNonIdlePlayers = []) {
         dpsEl.textContent = `${formatNumber(myDPS)} DPS`;
     }
     
+    // Update boss display (async fetch)
+    updateBossDisplay();
+    
     // Update "Current Session" dropdown text with live stats
     updateCurrentSessionText();
+}
+
+// Fetch and display current boss information
+async function updateBossDisplay() {
+    try {
+        const response = await fetch('/api/boss');
+        const data = await response.json();
+        
+        const bossContainer = document.getElementById('status-boss');
+        const bossNameEl = document.getElementById('boss-name');
+        
+        if (data.boss && data.boss.name) {
+            const boss = data.boss;
+            const categoryEmoji = {
+                'raid': '💀',
+                'dungeon': '⚔️',
+                'field': '🌍',
+                'unknown': '👹'
+            };
+            const emoji = categoryEmoji[boss.category] || '👹';
+            
+            bossNameEl.textContent = `${emoji} ${boss.name}`;
+            bossContainer.style.display = '';
+        } else {
+            bossContainer.style.display = 'none';
+        }
+    } catch (error) {
+        // Silently fail - boss display is non-critical
+    }
 }
 
 const dirtyPlayers = new Set();
