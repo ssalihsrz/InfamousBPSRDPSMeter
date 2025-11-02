@@ -116,6 +116,7 @@ const STATE = {
     zoneChanged: false, // Track if zone changed since last combat
     alwaysOnTop: true, // Default to true since Electron window starts with alwaysOnTop: true
     inCombat: false, // Track if currently in combat
+    lastZoneChangeTime: 0, // Timestamp of last zone change handled by frontend
     lastPlayerCount: 0, // Track player count to detect combat start
     playerLastUpdate: new Map(), // Track last update time for idle detection
     justCleared: false, // Track if we just cleared data (to prevent empty state flash)
@@ -480,39 +481,52 @@ async function fetchPlayerData() {
         // CRITICAL FIX: FORCE CLEAR on zone/server change
         // Backend tells us when server changed via serverChanged flag
         // MUST also check SETTINGS.autoClearOnZoneChange to respect user preference
+        // ALSO check if we already cleared recently to avoid multiple clears for same zone change
+        const now = Date.now();
+        const timeSinceLastClear = now - STATE.lastZoneChangeTime;
+        const MIN_TIME_BETWEEN_CLEARS = 5000; // 5 seconds minimum between clears
+        
         if (serverChanged && SETTINGS.autoClearOnZoneChange) {
-            console.log('🌍 ZONE/SERVER CHANGE DETECTED BY FRONTEND - Forcing display clear');
-            
-            // Save previous session if there was combat data
-            if (STATE.players.size > 0 && STATE.startTime) {
-                const duration = Math.floor((Date.now() - STATE.startTime) / 1000);
-                if (duration > 10) { // Only save if fight lasted more than 10 seconds
-                    console.log('💾 Auto-saving previous battle before zone clear...');
-                    // Fire and forget to avoid blocking
-                    autoSaveSession('Previous Battle (Auto-saved)').catch(err => {
-                        console.error('Failed to auto-save session:', err);
-                    });
+            // Only clear if enough time has passed since last clear
+            // This prevents clearing 6 times during the 3-second serverChanged window
+            if (timeSinceLastClear >= MIN_TIME_BETWEEN_CLEARS) {
+                console.log('🌍 ZONE/SERVER CHANGE DETECTED BY FRONTEND - Forcing display clear');
+                STATE.lastZoneChangeTime = now; // Mark that we handled this zone change
+                
+                // Save previous session if there was combat data
+                if (STATE.players.size > 0 && STATE.startTime) {
+                    const duration = Math.floor((Date.now() - STATE.startTime) / 1000);
+                    if (duration > 10) { // Only save if fight lasted more than 10 seconds
+                        console.log('💾 Auto-saving previous battle before zone clear...');
+                        // Fire and forget to avoid blocking
+                        autoSaveSession('Previous Battle (Auto-saved)').catch(err => {
+                            console.error('Failed to auto-save session:', err);
+                        });
+                    }
                 }
+                
+                // FORCE CLEAR - Wipe everything
+                console.log('✨ FORCE CLEARING all data for zone change');
+                STATE.players.clear();
+                STATE.playerLastUpdate.clear();
+                STATE.startTime = null;
+                STATE.inCombat = false;
+                STATE.lastUpdate = Date.now();
+                STATE.justCleared = true; // Prevent empty state flash
+                
+                // Clear the flag after 2 seconds to allow new data to populate
+                setTimeout(() => {
+                    STATE.justCleared = false;
+                }, 2000);
+                
+                // Force UI update
+                renderPlayers();
+                updateStatusBar();
+                stopDurationCounter();
+            } else {
+                // Already cleared recently, skip duplicate clear
+                console.log(`⏭️ Skipping duplicate clear (${Math.round(timeSinceLastClear/1000)}s since last clear)`);
             }
-            
-            // FORCE CLEAR - Wipe everything
-            console.log('✨ FORCE CLEARING all data for zone change');
-            STATE.players.clear();
-            STATE.playerLastUpdate.clear();
-            STATE.startTime = null;
-            STATE.inCombat = false;
-            STATE.lastUpdate = Date.now();
-            STATE.justCleared = true; // Prevent empty state flash
-            
-            // Clear the flag after 2 seconds to allow new data to populate
-            setTimeout(() => {
-                STATE.justCleared = false;
-            }, 2000);
-            
-            // Force UI update
-            renderPlayers();
-            updateStatusBar();
-            stopDurationCounter();
         } else if (serverChanged && !SETTINGS.autoClearOnZoneChange) {
             console.log('ℹ️ Zone changed but auto-clear disabled - keeping current data');
         }
@@ -2851,7 +2865,7 @@ async function checkForUpdates() {
         const data = await response.json();
         
         const latestVersion = data.tag_name.replace('v', '');
-        const currentVersion = '4.1.4';
+        const currentVersion = '4.1.5';
         
         if (button) {
             button.innerHTML = '<i class="fa-solid fa-check"></i> Check Complete';
@@ -2893,7 +2907,7 @@ async function checkForUpdates() {
 }
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v4.1.4 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v4.1.5 - Initializing...');
     
     // CRITICAL: Check if this is a popup window
     const isPopup = await checkPopupMode();
@@ -2985,7 +2999,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v4.1.4 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v4.1.5 - Ready!');
 }
 
 // ============================================================================
