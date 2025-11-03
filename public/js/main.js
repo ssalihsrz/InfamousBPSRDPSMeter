@@ -704,6 +704,9 @@ function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
         const badge = ROLE_BADGE_CACHE[prof.role] || ROLE_BADGE_CACHE.dps;
         const roleBadge = `<span class="role-badge-compact" style="background: ${badge.color}">${badge.text}</span>`;
         
+        // CRITICAL FIX v4.1.6: Respect column visibility settings
+        const cols = SETTINGS.columnsCompact;
+        
         if (SETTINGS.compactHealerMode) {
             // HEALER MODE: Show HPS, MAX HPS, TOTAL HEAL, OVERHEAL
             // Use real backend values if available, otherwise estimate
@@ -718,10 +721,10 @@ function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
                         ${roleBadge}
                         <span class="${prof.class}">${name}</span>
                     </div>
-                    <div class="cell-value">${formatNumber(hps)}</div>
-                    <div class="cell-value">${formatNumber(maxHps)}</div>
-                    <div class="cell-value">${formatNumber(totalHealing)}</div>
-                    <div class="cell-value">${overhealDisplay}</div>
+                    ${cols.hps ? `<div class="cell-value">${formatNumber(hps)}</div>` : ''}
+                    ${cols.maxHps || cols.hps ? `<div class="cell-value">${formatNumber(maxHps)}</div>` : ''}
+                    ${cols.totalHeal || cols.totalDmg ? `<div class="cell-value">${formatNumber(totalHealing)}</div>` : ''}
+                    ${cols.overheal || cols.dmgTaken ? `<div class="cell-value">${overhealDisplay}</div>` : ''}
                 </div>
             `;
         } else {
@@ -736,10 +739,13 @@ function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
                         ${roleBadge}
                         <span class="${prof.class}">${name}</span>
                     </div>
-                    <div class="cell-value">${formatNumber(currentDps)}</div>
-                    <div class="cell-value">${formatNumber(maxDps)}</div>
-                    <div class="cell-value">${formatNumber(totalDmg)}</div>
-                    <div class="cell-value">${dmgTakenDisplay}</div>
+                    ${cols.dps ? `<div class="cell-value">${formatNumber(currentDps)}</div>` : ''}
+                    ${cols.maxDps ? `<div class="cell-value">${formatNumber(maxDps)}</div>` : ''}
+                    ${cols.avgDps ? `<div class="cell-value">${formatNumber(avgDps)}</div>` : ''}
+                    ${cols.totalDmg ? `<div class="cell-value">${formatNumber(totalDmg)}</div>` : ''}
+                    ${cols.hps ? `<div class="cell-value">${formatNumber(hps)}${maxHps > 0 ? ` / ${formatNumber(maxHps)}` : ''}</div>` : ''}
+                    ${cols.dmgTaken ? `<div class="cell-value">${dmgTakenDisplay}</div>` : ''}
+                    ${cols.gs ? `<div class="cell-value">${gs > 0 ? formatNumber(gs) : '-'}</div>` : ''}
                 </div>
             `;
         }
@@ -782,6 +788,9 @@ function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
     }
     
     // DPS MODE (default): Show DPS columns
+    // CRITICAL FIX v4.1.6: Respect column visibility settings for full mode
+    const cols = SETTINGS.columnsFull;
+    
     return `
         <div class="player-row-wrapper">
             <div class="player-row ${isLocal ? 'local' : ''} ${isExpanded ? 'expanded' : ''} ${isIdle ? 'idle' : ''}" 
@@ -799,13 +808,13 @@ function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
                         <div class="hp-fill" style="width: ${hpPercent}%; background: ${getHPColor(hpPercent)}"></div>
                     </div>
                 </div>
-                <div class="cell-value">${formatNumber(currentDps)}</div>
-                <div class="cell-value">${formatNumber(maxDps)}</div>
-                <div class="cell-value">${formatNumber(avgDps)}</div>
-                <div class="cell-value">${formatNumber(totalDmg)} <span class="contribution-percent">(${contributionPercent}%)</span></div>
-                <div class="cell-value">${formatNumber(hps)}${maxHps > 0 ? ` / ${formatNumber(maxHps)}` : ''}</div>
-                <div class="cell-value">${formatNumber(dmgTaken)}</div>
-                <div class="cell-value">${gs > 0 ? formatNumber(gs) : '<span style="opacity:0.5">N/A</span>'}</div>
+                ${cols.dps ? `<div class="cell-value">${formatNumber(currentDps)}</div>` : ''}
+                ${cols.maxDps ? `<div class="cell-value">${formatNumber(maxDps)}</div>` : ''}
+                ${cols.avgDps ? `<div class="cell-value">${formatNumber(avgDps)}</div>` : ''}
+                ${cols.totalDmg ? `<div class="cell-value">${formatNumber(totalDmg)} <span class="contribution-percent">(${contributionPercent}%)</span></div>` : ''}
+                ${cols.hps ? `<div class="cell-value">${formatNumber(hps)}${maxHps > 0 ? ` / ${formatNumber(maxHps)}` : ''}</div>` : ''}
+                ${cols.dmgTaken ? `<div class="cell-value">${formatNumber(dmgTaken)}</div>` : ''}
+                ${cols.gs ? `<div class="cell-value">${gs > 0 ? formatNumber(gs) : '<span style="opacity:0.5">N/A</span>'}</div>` : ''}
             </div>
             ${isExpanded ? renderPlayerDetails(player) : ''}
         </div>
@@ -1179,31 +1188,34 @@ function renderPlayers() {
     const healerMode = isCompact ? SETTINGS.compactHealerMode : SETTINGS.fullHealerMode;
     
     // Update full mode column headers dynamically
+    // CRITICAL FIX v4.1.6: Respect column visibility settings
     const columnHeaders = document.querySelector('.column-headers');
     if (columnHeaders && !isCompact) {
+        const cols = SETTINGS.columnsFull;
+        
         if (SETTINGS.fullHealerMode) {
             columnHeaders.innerHTML = `
                 <div class="col-rank" data-sort="rank">#</div>
                 <div class="col-name" data-sort="name">NAME</div>
-                <div class="col-dps" data-sort="hps">HPS <i class="fa-solid fa-sort"></i></div>
-                <div class="col-max-dps" data-sort="maxHps">MAX HPS <i class="fa-solid fa-sort"></i></div>
-                <div class="col-avg-dps" data-sort="totalHealing">TOTAL HEAL <i class="fa-solid fa-sort"></i></div>
-                <div class="col-total-dmg" data-sort="overheal">OVERHEAL <i class="fa-solid fa-sort"></i></div>
-                <div class="col-hps" data-sort="hps">HPS / MAX <i class="fa-solid fa-sort"></i></div>
-                <div class="col-dmg-taken" data-sort="dmgTaken">DMG TAKEN <i class="fa-solid fa-sort"></i></div>
-                <div class="col-gs" data-sort="gs">GS <i class="fa-solid fa-sort"></i></div>
+                ${cols.hps ? '<div class="col-dps" data-sort="hps">HPS <i class="fa-solid fa-sort"></i></div>' : ''}
+                ${cols.maxHps || cols.maxDps ? '<div class="col-max-dps" data-sort="maxHps">MAX HPS <i class="fa-solid fa-sort"></i></div>' : ''}
+                ${cols.totalHeal || cols.totalDmg ? '<div class="col-avg-dps" data-sort="totalHealing">TOTAL HEAL <i class="fa-solid fa-sort"></i></div>' : ''}
+                ${cols.overheal || cols.dmgTaken ? '<div class="col-total-dmg" data-sort="overheal">OVERHEAL <i class="fa-solid fa-sort"></i></div>' : ''}
+                ${cols.hps ? '<div class="col-hps" data-sort="hps">HPS / MAX <i class="fa-solid fa-sort"></i></div>' : ''}
+                ${cols.dmgTaken ? '<div class="col-dmg-taken" data-sort="dmgTaken">DMG TAKEN <i class="fa-solid fa-sort"></i></div>' : ''}
+                ${cols.gs ? '<div class="col-gs" data-sort="gs">GS <i class="fa-solid fa-sort"></i></div>' : ''}
             `;
         } else {
             columnHeaders.innerHTML = `
                 <div class="col-rank" data-sort="rank">#</div>
                 <div class="col-name" data-sort="name">NAME</div>
-                <div class="col-dps" data-sort="dps">DPS <i class="fa-solid fa-sort"></i></div>
-                <div class="col-max-dps" data-sort="maxDps">MAX DPS <i class="fa-solid fa-sort"></i></div>
-                <div class="col-avg-dps" data-sort="avgDps">AVG DPS <i class="fa-solid fa-sort"></i></div>
-                <div class="col-total-dmg" data-sort="totalDmg">TOTAL DMG <i class="fa-solid fa-sort"></i></div>
-                <div class="col-hps" data-sort="hps">HPS / MAX <i class="fa-solid fa-sort"></i></div>
-                <div class="col-dmg-taken" data-sort="dmgTaken">DMG TAKEN <i class="fa-solid fa-sort"></i></div>
-                <div class="col-gs" data-sort="gs">GS <i class="fa-solid fa-sort"></i></div>
+                ${cols.dps ? '<div class="col-dps" data-sort="dps">DPS <i class="fa-solid fa-sort"></i></div>' : ''}
+                ${cols.maxDps ? '<div class="col-max-dps" data-sort="maxDps">MAX DPS <i class="fa-solid fa-sort"></i></div>' : ''}
+                ${cols.avgDps ? '<div class="col-avg-dps" data-sort="avgDps">AVG DPS <i class="fa-solid fa-sort"></i></div>' : ''}
+                ${cols.totalDmg ? '<div class="col-total-dmg" data-sort="totalDmg">TOTAL DMG <i class="fa-solid fa-sort"></i></div>' : ''}
+                ${cols.hps ? '<div class="col-hps" data-sort="hps">HPS / MAX <i class="fa-solid fa-sort"></i></div>' : ''}
+                ${cols.dmgTaken ? '<div class="col-dmg-taken" data-sort="dmgTaken">DMG TAKEN <i class="fa-solid fa-sort"></i></div>' : ''}
+                ${cols.gs ? '<div class="col-gs" data-sort="gs">GS <i class="fa-solid fa-sort"></i></div>' : ''}
             `;
         }
         // Re-attach sort handlers after updating innerHTML
@@ -1213,16 +1225,19 @@ function renderPlayers() {
     // Add compact mode headers
     let compactHeadersHTML = '';
     if (isCompact) {
+        // CRITICAL FIX v4.1.6: Respect column visibility in headers
+        const cols = SETTINGS.columnsCompact;
+        
         if (SETTINGS.compactHealerMode) {
             // Healer mode: Show healing metrics
             compactHeadersHTML = `
                 <div class="compact-headers">
                     <div>#</div>
                     <div>PLAYER</div>
-                    <div>HPS</div>
-                    <div>MAX HPS</div>
-                    <div>TOTAL HEAL</div>
-                    <div>OVERHEAL</div>
+                    ${cols.hps ? '<div>HPS</div>' : ''}
+                    ${cols.maxHps || cols.hps ? '<div>MAX HPS</div>' : ''}
+                    ${cols.totalHeal || cols.totalDmg ? '<div>TOTAL HEAL</div>' : ''}
+                    ${cols.overheal || cols.dmgTaken ? '<div>OVERHEAL</div>' : ''}
                 </div>
             `;
         } else {
@@ -1231,10 +1246,13 @@ function renderPlayers() {
                 <div class="compact-headers">
                     <div>#</div>
                     <div>PLAYER</div>
-                    <div>DPS</div>
-                    <div>MAX DPS</div>
-                    <div>TOTAL DMG</div>
-                    <div>DMG TAKEN</div>
+                    ${cols.dps ? '<div>DPS</div>' : ''}
+                    ${cols.maxDps ? '<div>MAX DPS</div>' : ''}
+                    ${cols.avgDps ? '<div>AVG DPS</div>' : ''}
+                    ${cols.totalDmg ? '<div>TOTAL DMG</div>' : ''}
+                    ${cols.hps ? '<div>HPS / MAX</div>' : ''}
+                    ${cols.dmgTaken ? '<div>DMG TAKEN</div>' : ''}
+                    ${cols.gs ? '<div>GS</div>' : ''}
                 </div>
             `;
         }
@@ -2865,7 +2883,7 @@ async function checkForUpdates() {
         const data = await response.json();
         
         const latestVersion = data.tag_name.replace('v', '');
-        const currentVersion = '4.1.5';
+        const currentVersion = '4.1.6';
         
         if (button) {
             button.innerHTML = '<i class="fa-solid fa-check"></i> Check Complete';
@@ -2907,7 +2925,7 @@ async function checkForUpdates() {
 }
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v4.1.5 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v4.1.6 - Initializing...');
     
     // CRITICAL: Check if this is a popup window
     const isPopup = await checkPopupMode();
@@ -2999,7 +3017,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v4.1.5 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v4.1.6 - Ready!');
 }
 
 // ============================================================================
