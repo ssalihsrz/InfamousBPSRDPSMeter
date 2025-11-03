@@ -104,20 +104,27 @@ body {
     cursor: grabbing;
 }
 
-/* FIXED v3.1.191: Simplified drag hierarchy - containers inherit parent drag */
+/* FIXED v4.1.6: Proper drag hierarchy - containers and text inherit parent drag */
 .title-bar .title-left,
 .title-bar .title-right {
     display: flex;
     align-items: center;
     gap: 8px;
-    /* No explicit drag rule - inherits from parent */
+    /* Inherits drag from parent .title-bar */
 }
 
-/* Text elements inherit drag from parent - no need for explicit rules */
+/* Text elements are draggable - they inherit from parent .title-bar */
 .title-bar .logo,
 .title-bar .app-name,
 .title-bar .duration {
-    pointer-events: none; /* Let drag events pass through to parent */
+    cursor: grab;
+    user-select: none; /* Prevent text selection during drag */
+}
+
+.title-bar .logo:active,
+.title-bar .app-name:active,
+.title-bar .duration:active {
+    cursor: grabbing;
 }
 
 /* CRITICAL: Buttons must override parent drag */
@@ -1140,7 +1147,7 @@ body.compact-mode .modal {
     cursor: grabbing;
 }
 
-/* FIXED v3.1.191: Duration inherits drag from parent */
+/* FIXED v4.1.6: Duration is draggable - inherits from parent */
 .meter-header .duration {
     font-size: 13px;
     font-weight: 600;
@@ -1148,7 +1155,12 @@ body.compact-mode .modal {
     margin-left: auto;
     margin-right: 8px;
     flex-shrink: 0;
-    pointer-events: none; /* Let drag pass through */
+    cursor: grab;
+    user-select: none; /* Prevent text selection during drag */
+}
+
+.meter-header .duration:active {
+    cursor: grabbing;
 }
 
 /* CRITICAL: Interactive elements must override parent drag */
